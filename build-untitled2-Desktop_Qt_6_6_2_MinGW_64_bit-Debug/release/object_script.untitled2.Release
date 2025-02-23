@@ -1,0 +1,16 @@
+release/fourwindow.o
+release/gameman.o
+release/main.o
+release/mainwindow.o
+release/maze.o
+release/role.o
+release/secondwindow.o
+release/widget.o
+release/qrc_res.o
+release/moc_fourwindow.o
+release/moc_gameman.o
+release/moc_mainwindow.o
+release/moc_maze.o
+release/moc_role.o
+release/moc_secondwindow.o
+release/moc_widget.o

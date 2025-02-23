@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "manifest.json": "jsonc",
+        "pages.json": "jsonc",
+        "vector": "cpp",
+        "xstring": "cpp",
+        "xutility": "cpp",
+        "functional": "cpp",
+        "type_traits": "cpp",
+        "xtr1common": "cpp"
+    }
+}

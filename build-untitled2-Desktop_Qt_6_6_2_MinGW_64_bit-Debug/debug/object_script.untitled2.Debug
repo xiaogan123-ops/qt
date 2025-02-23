@@ -1,0 +1,16 @@
+debug/fourwindow.o
+debug/gameman.o
+debug/main.o
+debug/mainwindow.o
+debug/maze.o
+debug/role.o
+debug/secondwindow.o
+debug/widget.o
+debug/qrc_res.o
+debug/moc_fourwindow.o
+debug/moc_gameman.o
+debug/moc_mainwindow.o
+debug/moc_maze.o
+debug/moc_role.o
+debug/moc_secondwindow.o
+debug/moc_widget.o

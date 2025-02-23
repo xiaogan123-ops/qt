@@ -1,0 +1,34 @@
+<RCC>
+    <qresource prefix="/">
+        <file>res/background.jpg</file>
+        <file>res/titile.jpg</file>
+        <file>res/a.jpg</file>
+        <file>res/abc.png</file>
+        <file>res/BackGround.png</file>
+        <file>res/BLANK.png</file>
+        <file>res/BOX.png</file>
+        <file>res/BOX_DONE.png</file>
+        <file>res/cheese.jpg</file>
+        <file>res/DEST.png</file>
+        <file>res/destination.jpg</file>
+        <file>res/Explain.png</file>
+        <file>res/ground.jpg</file>
+        <file>res/HUMAN.png</file>
+        <file>res/miku.png</file>
+        <file>res/start0.jpg</file>
+        <file>res/WALL.png</file>
+        <file>res/b.jpg</file>
+        <file>res/OIP.jpg</file>
+        <file>res/c.jpg</file>
+        <file>res/background2.jpg</file>
+        <file>res/1.png</file>
+        <file>res/music.mp3</file>
+        <file>res/ButtonSound.wav</file>
+        <file>res/2.jpg</file>
+        <file>res/victory_sound.mp3</file>
+        <file>res/music_2.mp3</file>
+    </qresource>
+    <qresource prefix="/audio"/>
+    <qresource prefix="/adio"/>
+    <qresource prefix="/sa"/>
+</RCC>
