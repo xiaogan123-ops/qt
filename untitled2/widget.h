@@ -22,15 +22,15 @@ public:
 
     void loadMazeFromFile(const QString &filePath); // 加载迷宫文件
     void setMazeParameters(int rows, int cols, int startX, int startY, int endX, int endY); // 设置迷宫参数
-    void moveRole(int dRow, int dCol);
+    void moveRole(int dRow, int dCol);// 移动角色
 
-    void markPathOnMaze(const QVector<QPair<int, int>>& path);
-    void resetMazePathMarks();
+    void markPathOnMaze(const QVector<QPair<int, int>>& path);// 标记路径
+    void resetMazePathMarks();// 清除路径标记
 
-    void setMaze(int level, int rows, int cols, int startX, int startY, int endX, int endY);
-    void resetGame1(int level);
+    void setMaze(int level, int rows, int cols, int startX, int startY, int endX, int endY);// 设置迷宫参数_2
+    void resetGame1(int level);// 重置游戏状态
 
-    bool findPathDFS(QList<QPoint>& path);
+    bool findPathDFS(QList<QPoint>& path);// DFS寻路算法
 
 
 
@@ -68,10 +68,17 @@ private:
     QMediaPlayer *mMedia_3;    // 媒体播放器
     QAudioOutput *audioOutput_3; // 音频输出
 
-    bool showVictory;
-    qreal victoryScale;
-    QTimer* victoryTimer;
+    QMediaPlayer *mMedia_4;    // 媒体播放器
+    QAudioOutput *audioOutput_4; // 音频输出
+
+    bool showVictory;     // 显示胜利动画标志
+    qreal victoryScale;    // 胜利动画缩放比例
+    QTimer* victoryTimer;    // 胜利动画定时器
     bool victorySoundPlayed; // 新增成员变量
+
+    qreal failureScale;   // 失败动画缩放比例
+    QTimer* failureTimer_2;   // 失败动画定时器
+    bool failure_soundPlayed_2; // 新增成员变量
 
 signals:
     void back(); // 返回信号
@@ -79,7 +86,7 @@ signals:
 private slots:
     void onBackButtonClicked(); // 返回按钮点击事件
     void onNoSolutionButtonClicked();//无解按钮点击事件
-    void onAutoPathButtonClicked();
+    void onAutoPathButtonClicked();  // 自动寻径按钮
 };
 
 #endif // WIDGET_H

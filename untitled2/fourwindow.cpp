@@ -24,8 +24,8 @@ FourWindow::FourWindow(QWidget *parent)
     ui->setupUi(this);
     setFixedSize(700, 500);
     connect(ui->btu1,&QPushButton::clicked,this,&FourWindow::onBackButtonClicked);
-    ui->spinBox->setRange(11, 100); // 设置迷宫行数的范围
-    ui->spinBox_2->setRange(11, 100); // 设置迷宫列数的范围
+    ui->spinBox->setRange(11, 50); // 设置迷宫行数的范围
+    ui->spinBox_2->setRange(11, 50); // 设置迷宫列数的范围
     ui->spinBox->setValue(mazeRows); // 设置初始行数为13
     ui->spinBox_2->setValue(mazeCols); // 设置初始列数为13
     ui->spinBox_3->setRange(1,88);
@@ -40,7 +40,7 @@ FourWindow::FourWindow(QWidget *parent)
 
 
     drawMaze();
-    // 连接 QSpinBox 的 valueChanged 信号到槽函数
+    // 连接 QSpinBox 信号到槽函数
     connect(ui->spinBox, QOverload<int>::of(&QSpinBox::valueChanged),
             this, &FourWindow::onSpinBoxValueChanged);
     connect(ui->spinBox_2, QOverload<int>::of(&QSpinBox::valueChanged),
@@ -69,6 +69,8 @@ FourWindow::~FourWindow()
 {
     delete ui;
 }
+
+
 void FourWindow::onSpinBoxValueChanged(int value){
     mazeRows=value;
     qDebug()<<mazeRows;
@@ -78,9 +80,11 @@ void FourWindow::onSpinBoxValueChanged_2(int value){
     mazeCols=value;
     drawMaze();
 }
+//终点x
 void FourWindow::onSpinBoxValueChanged_3(int value){
     endX=value;
 }
+//终点y
 void FourWindow::onSpinBoxValueChanged_4(int value){
     endY=value;
 }
@@ -93,15 +97,17 @@ void FourWindow::onBackButtonClicked(){
     } else {
         qDebug() << "Parent widget is null";
     }
-     mMedia->play();
+    mMedia->play();
 } // 处理返回上一个界面的按钮点击事件
 void FourWindow::onGenerateMazeClicked(){
     mMedia->play();
     drawMaze1();
 
 }
+
+//初始画地图
 void FourWindow::drawMaze() {
-    if (mpmap) delete mpmap; // 释放旧对象，避免内存泄漏
+    if (mpmap) delete mpmap; // 释放旧对象
 
     Maze *maze = new Maze(mazeRows, mazeCols, this); // 迷宫大小修正
     mpmap = new Gameman(this);
@@ -111,7 +117,7 @@ void FourWindow::drawMaze() {
 }
 
 
-
+//生成地图
 void FourWindow::drawMaze1() {
     if (mpmap) {
         delete mpmap;
@@ -120,17 +126,17 @@ void FourWindow::drawMaze1() {
 
 
     QString selectedAlgorithm = ui->algorithmComboBox->currentText();
-    Maze::Algorithm algorithmType_2=Maze::DFS;
+    Maze::Algorithm algorithmType_2=Maze::Graph_DFS;
 
     if (selectedAlgorithm == "Graph_DFS") {
-        algorithmType_2 =  Maze::DFS;
+        algorithmType_2 =  Maze::Graph_DFS;
     } else if (selectedAlgorithm == "PRIM") {
         algorithmType_2 =  Maze::PRIM;
-    } else if (selectedAlgorithm == "BruteForce_DFS") {
-        algorithmType_2 =  Maze::Brute_force_DFS;
+    } else if (selectedAlgorithm == "Kruskal") {
+        algorithmType_2 =  Maze::Kruskal;
     }
 
-    // 创建新的迷宫，修正终点坐标为 mazeRows-1 和 mazeCols-1
+    // 创建新的迷宫
     Maze *maze = new Maze(mazeRows, mazeCols, startx, starty, endX, endY, algorithmType_2, this);
     mpmap = new Gameman(this);
 
@@ -138,12 +144,12 @@ void FourWindow::drawMaze1() {
     mpmap->InitByData(maze->getmaze());
 
     // 生成迷宫并实时更新数据
-    if(algorithmType_2 == Maze::DFS){
-    maze->generateMazeDFSVisual(this);
+    if(algorithmType_2 == Maze::Graph_DFS){
+        maze->generateMazeDFSVisual(this);
     }else if(algorithmType_2 == Maze::PRIM){
         maze->generateMazeprimVisual(this);
-    }else if(algorithmType_2 == Maze::Brute_force_DFS){
-        maze->generateMazebfsVisual(this);
+    }else if(algorithmType_2 == Maze::Kruskal){
+        maze->generateMazeKruskalVisual(this);
     }
 
     // 确保终点正确设置
@@ -171,11 +177,14 @@ void FourWindow::drawMaze1() {
         return;
     }
 }
+
+//重新定义迷宫数据
 void FourWindow::updateMazeData(const QVector<QVector<int>>& data) {
     if (mpmap) {
         mpmap->InitByData(data);
     }
 }
+
 void FourWindow::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
@@ -192,13 +201,15 @@ void FourWindow::paintEvent(QPaintEvent *event)
 
     // 绘制迷宫
     if (mpmap) {
-        mpmap->paint(&painter, QPoint(0, 0)); // 确保 paintEvent 里调用
+        mpmap->paint(&painter, QPoint(0, 0));
     }
 }
 
+//起点x
 void FourWindow::onSpinBoxValueChanged_5(int value){
     startx=value;
 }
+//起点y
 void FourWindow::onSpinBoxValueChanged_6(int value){
     starty=value;
 }

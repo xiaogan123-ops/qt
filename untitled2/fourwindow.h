@@ -21,7 +21,7 @@ public:
     explicit FourWindow(QWidget *parent = nullptr);
     ~FourWindow();
     void paintEvent(QPaintEvent *event);
-    void updateMazeData(const QVector<QVector<int>>& data);
+    void updateMazeData(const QVector<QVector<int>>& data);//更新迷宫数据
 
 private slots:
     void onBackButtonClicked(); // 处理返回上一个界面的按钮点击事件
@@ -32,13 +32,14 @@ private slots:
     void onSpinBoxValueChanged_5(int value);
     void onSpinBoxValueChanged_6(int value);
     void onGenerateMazeClicked();
-    void drawMaze();
-    void drawMaze1();
+
+    void drawMaze();// 绘制迷宫
+    void drawMaze1();// 绘制迷宫_2
 
 
 private:
     Ui::FourWindow *ui;
-     Gameman *mpmap;   // 地图管理对象
+    Gameman *mpmap;   // 地图管理对象
     int mazeRows;     // 迷宫行数
     int mazeCols;     // 迷宫列数
     int endX;

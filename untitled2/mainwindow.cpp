@@ -9,7 +9,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
-    , secondWindow(new SecondWindow(this))// SecondWindow's parent is MainWindow
+    , secondWindow(new SecondWindow(this))
     ,fourwindow(new FourWindow(this))
     ,mMedia(new QMediaPlayer(this))
     ,audioOutput(new QAudioOutput(this))
@@ -17,12 +17,13 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     setFixedSize(700, 500);
 
-    // Connect buttons to slots
+     // 连接按钮信号与槽函数
     connect(ui->btu2, &QPushButton::clicked, this, &MainWindow::onNextButtonClicked);
     connect(ui->btu3, &QPushButton::clicked, this,&MainWindow::onExitButtonClicked);
     connect(ui->btu1, &QPushButton::clicked, this, &MainWindow::onAboutButtonClicked);
     connect(ui->btu4,&QPushButton::clicked,this,&MainWindow::onNextTowButtonClicked);
 
+    // 配置音频设置
     mMedia->setAudioOutput(audioOutput);
     mMedia->setSource(QUrl("qrc:/res/ButtonSound.wav"));
     audioOutput->setVolume(50);
@@ -31,14 +32,17 @@ MainWindow::MainWindow(QWidget *parent)
 
 
 }
+
 void MainWindow::onNextTowButtonClicked(){
     this->hide();
     fourwindow->show();
     mMedia->play();
 
 }
+
+// 退出按钮点击处理
 void MainWindow::onExitButtonClicked(){
-     mMedia->play();
+    mMedia->play();
     connect(mMedia, &QMediaPlayer::playbackStateChanged, this, [this](QMediaPlayer::PlaybackState state) {
         if (state == QMediaPlayer::StoppedState) {
             qApp->quit(); // 音效播放完成后退出
@@ -48,19 +52,21 @@ void MainWindow::onExitButtonClicked(){
 }
 void MainWindow::onNextButtonClicked()
 {
-    this->hide(); // Hide MainWindow
-    secondWindow->show(); // Show SecondWindow
+    this->hide();// 隐藏主窗口
+    secondWindow->show();
     mMedia->play();
 }
+
+// 释放资源
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete secondWindow; // Clean up SecondWindow
+    delete secondWindow;
 }
 
 void MainWindow::paintEvent(QPaintEvent *event)
 {
-    Q_UNUSED(event); // Mark the parameter as unused
+    Q_UNUSED(event); // 标记未使用参数
 
     QPainter painter(this);
 

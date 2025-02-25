@@ -22,209 +22,17 @@ Maze::Maze(int rows, int cols, int startX, int startY, int endX, int endY, Algor
 
 {
     // 初始化迷宫，1=墙壁, 0=路径
-    this->startX = qBound(0, startX, rows - 1);
+    this->startX = qBound(0, startX, rows - 1); // 起点X坐标限制在[0, rows-1]
     this->startY = qBound(0, startY, cols - 1);
     this->endX = qBound(0, endX, rows - 1);
     this->endY = qBound(0, endY, cols - 1);
+
+     // 初始化迷宫
     maze = QVector<QVector<int>>(rows, QVector<int>(cols, 1));
 
 }
 
-// 统一调用生成迷宫的方法
-void Maze::generateMaze()
-{
-    switch (algorithmType) {
-    case DFS:
-        generateMazeDFS();
-        break;
-    case PRIM:
-        generateMazePrim();
-        break;
-    case Brute_force_DFS:
-        generateMazeBruteForceDFS();
-        break;
-    }
-    // **确保终点仍然存在**
-    maze[endX][endY] = 2;
 
-}
-
-// **1️⃣ 深度优先搜索（DFS）算法**
-void Maze::generateMazeDFS()
-{
-    QStack<QPair<int, int>> stack;
-    stack.push({startX, startY});
-    maze[startX][startY] = 0; // 标记起点为路径
-
-    std::random_device rd;
-    std::mt19937 g(rd());
-
-    while (!stack.isEmpty()) {
-        int x = stack.top().first;
-        int y = stack.top().second;
-        QVector<int> directions = {0, 1, 2, 3};
-        std::shuffle(directions.begin(), directions.end(), g);
-
-        bool moved = false;
-        for (int dir : directions) {
-            int nx = x + DX[dir] * 2;
-            int ny = y + DY[dir] * 2;
-
-            if (isValid(nx, ny)) {
-                removeWall(x, y, nx, ny);
-                maze[nx][ny] = 0;
-                stack.push({nx, ny});
-                moved = true;
-                break;
-            }
-        }
-
-        if (!moved) {
-            stack.pop();
-        }
-    }
-    // **保证终点至少有一条路径**
-
-    for (int i = 0; i < 4; ++i) {
-        int nx = endX + DX[i];
-        int ny = endY + DY[i];
-
-        if (isValid(nx, ny) && maze[nx][ny] == 0) {
-
-            break;
-        }
-    }
-
-
-
-    // **确保终点**
-    maze[endX][endY] = 2;
-}
-
-// **2️ 随机 Prim 算法**
-void Maze::generateMazePrim()
-{
-    // 确保迷宫尺寸为奇数
-    if (rows % 2 == 0) rows--;
-    if (cols % 2 == 0) cols--;
-    maze = QVector<QVector<int>>(rows, QVector<int>(cols, 1)); // 1=墙
-
-    struct Point { int x, y; };
-    QList<Point> wallList;
-
-    // 随机选择起点（确保是奇数坐标）
-    int startCol = 2 * QRandomGenerator::global()->bounded((cols-1)/2) + 1;
-    int startRow = 2 * QRandomGenerator::global()->bounded((rows-1)/2) + 1;
-    maze[startRow][startCol] = 0; // 设为路径
-
-    // 将起点周围的墙加入列表
-    auto pushSurroundingWalls = [&](int x, int y) {
-        const int dx[] = {-1, 0, 1, 0};
-        const int dy[] = {0, -1, 0, 1};
-        for (int i = 0; i < 4; ++i) {
-            int nx = x + dx[i];
-            int ny = y + dy[i];
-            if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && maze[ny][nx] == 1) {
-                wallList.append({nx, ny});
-            }
-        }
-    };
-    pushSurroundingWalls(startCol, startRow);
-
-    while (!wallList.isEmpty()) {
-        // 随机选择一堵墙
-        if (wallList.isEmpty()) break; // 如果列表为空，直接退出
-
-        // 使用显式类型转换
-        int index = QRandomGenerator::global()->bounded(static_cast<quint32>(wallList.size()));
-        Point wall = wallList.takeAt(index);
-
-        // 寻找墙两侧的单元格
-        Point oppositeCell = {-1, -1};
-        const int dx[] = {-1, 0, 1, 0};
-        const int dy[] = {0, -1, 0, 1};
-        for (int i = 0; i < 4; ++i) {
-            int ax = wall.x + dx[i];
-            int ay = wall.y + dy[i];
-            int bx = wall.x - dx[i];
-            int by = wall.y - dy[i];
-
-            if (ax >= 0 && ax < cols && ay >= 0 && ay < rows &&
-                bx >= 0 && bx < cols && by >= 0 && by < rows)
-            {
-                bool aPass = maze[ay][ax] == 0;
-                bool bPass = maze[by][bx] == 0;
-
-                if (aPass != bPass) { // 只有一侧是通路
-                    oppositeCell = aPass ? Point{bx, by} : Point{ax, ay};
-                    break;
-                }
-            }
-        }
-
-        // 如果找到有效单元格
-        if (oppositeCell.x != -1 && oppositeCell.y != -1 &&
-            maze[oppositeCell.y][oppositeCell.x] == 1)
-        {
-            // 打通墙和对面单元格
-            maze[wall.y][wall.x] = 0;
-            maze[oppositeCell.y][oppositeCell.x] = 0;
-
-            // 将新单元格周围的墙加入列表
-            pushSurroundingWalls(oppositeCell.x, oppositeCell.y);
-        }
-    }
-
-    // 设置起点和终点
-    maze[startY][startX] = 3;
-    maze[endY][endX] = 2;
-
-}
-
-// **2️⃣ 暴力深度优先搜索（Brute-force DFS）算法**
-void Maze::generateMazeBruteForceDFS()
-{
-    // 使用递归方式进行暴力DFS生成迷宫
-    QStack<QPair<int, int>> stack;
-    stack.push({startX, startY});
-    maze[startX][startY] = 0;  // 标记起点为路径
-
-    std::random_device rd;
-    std::mt19937 g(rd());
-
-    // 暴力DFS的方向（右，下，左，上）
-    const int DX[] = {1, 0, -1, 0};
-    const int DY[] = {0, 1, 0, -1};
-
-    while (!stack.isEmpty()) {
-        int x = stack.top().first;
-        int y = stack.top().second;
-
-        QVector<int> directions = {0, 1, 2, 3};  // 随机化方向
-        std::shuffle(directions.begin(), directions.end(), g);
-
-        bool moved = false;
-        for (int dir : directions) {
-            int nx = x + DX[dir] * 2;
-            int ny = y + DY[dir] * 2;
-
-            if (isValid(nx, ny)) {
-                removeWall(x, y, nx, ny);  // 移除当前单元和新单元之间的墙
-                maze[nx][ny] = 0;  // 标记新单元为路径
-                stack.push({nx, ny});  // 将新单元推入栈中
-                moved = true;
-                break;
-            }
-        }
-
-        if (!moved) {
-            stack.pop();  // 如果没有找到新路径，则回退
-        }
-    }
-
-    // 确保终点设置正确
-    maze[endX][endY] = 2;
-}
 
 // **辅助函数**
 bool Maze::isValid(int x, int y)
@@ -232,11 +40,13 @@ bool Maze::isValid(int x, int y)
     return x > 0 && x < rows - 1 && y > 0 && y < cols - 1 && maze[x][y] == 1;
 }
 
+// 移除两坐标之间的墙壁
 void Maze::removeWall(int x1, int y1, int x2, int y2)
 {
     maze[(x1 + x2) / 2][(y1 + y2) / 2] = 0;
 }
 
+// 将迷宫保存到文件
 bool Maze::saveToFile(const QString &filename) const {
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -261,8 +71,9 @@ bool Maze::saveToFile(const QString &filename) const {
 QVector<QVector<int>>  Maze::getmaze(){
     return maze;
 }
-// 修改后的 Maze::generateMazeDFSVisual 函数
 
+
+// 使用深度优先搜索（DFS）生成迷宫，并可视化生成过程
 void Maze::generateMazeDFSVisual(FourWindow* window) {
     if (maze.isEmpty() || maze[0].isEmpty()) return;
 
@@ -305,7 +116,7 @@ void Maze::generateMazeDFSVisual(FourWindow* window) {
                     moved = true;
 
                     window->update();
-                    QThread::msleep(50);
+                    QThread::msleep(50);// 暂停50毫秒
                     QApplication::processEvents();
                     break;
                 }
@@ -325,40 +136,35 @@ void Maze::generateMazeDFSVisual(FourWindow* window) {
 
 }
 
-
+// 使用Prim算法生成迷宫，并可视化生成过程
 void Maze::generateMazeprimVisual(FourWindow* window) {
     if (maze.isEmpty() || maze[0].isEmpty()) return;
 
-    // 初始化所有单元格为墙
-    for (int i = 0; i < rows; ++i)
-        for (int j = 0; j < cols; ++j)
-            maze[i][j] = 1;
+    maze[startX][startY] = 0;
 
-    // 随机选择起始点（可改为参数传入）
-    int startX = rows / 2;
-    int startY = cols / 2;
-    maze[startX][startY] = 3;
-
-    // 候选墙列表（存储格式：墙坐标 + 相邻单元格方向）
-    QVector<QVector<int>> walls;
+    QVector<QVector<int>> walls;// 存储候选墙壁
 
     // 初始化候选墙列表
     auto addWalls = [&](int x, int y) {
         for (int dir = 0; dir < 4; ++dir) {
-            int nx = x + DX[dir];
-            int ny = y + DY[dir];
-            if (nx >= 0 && nx < rows && ny >= 0 && ny < cols)
-                walls.append({nx, ny, dir});
+            int wallX = x + DX[dir];
+            int wallY = y + DY[dir];
+            int cellX = x + DX[dir]*2;
+            int cellY = y + DY[dir]*2;
+
+            if (cellX >= 0 && cellX < rows && cellY >= 0 && cellY < cols)
+                walls.append({wallX, wallY, dir});// 将墙壁加入候选列表
         }
     };
-    addWalls(startX, startY);
+
+    addWalls(startX, startY);// 从起点开始添加墙壁
 
     std::random_device rd;
     std::mt19937 g(rd());
 
     while (!walls.isEmpty()) {
-        // 随机选择一堵墙（Prim算法核心）
-        std::shuffle(walls.begin(), walls.end(), g);
+        // 随机选择一堵墙
+        std::shuffle(walls.begin(), walls.end(), g);// 随机打乱墙壁顺序
         auto wall = walls.takeLast();
         int wx = wall[0], wy = wall[1], dir = wall[2];
 
@@ -369,18 +175,22 @@ void Maze::generateMazeprimVisual(FourWindow* window) {
         int oy = wy - DY[dir];
 
         // 边界检查
-        if (cx < 0 || cx >= rows || cy < 0 || cy >= cols) continue;
-        if (ox < 0 || ox >= rows || oy < 0 || oy >= cols) continue;
+        bool valid1 = (cx >= 0 && cx < rows && cy >= 0 && cy < cols);
+        bool valid2 = (ox >= 0 && ox < rows && oy >= 0 && oy < cols);
+        if (!valid1 || !valid2) continue;
 
-        // 打通条件：一边是通道，另一边是墙
-        if ((maze[cx][cy] == 1) != (maze[ox][oy] == 1)) {
-            maze[wx][wy] = 0; // 打通墙
-            int newCell = (maze[cx][cy] == 1) ? cx : ox;
-            int newX = (newCell == cx) ? cx : ox;
-            int newY = (newCell == cy) ? cy : oy;
+        // 检查是否一通路一墙
+        if ((maze[cx][cy] == 0) ^ (maze[ox][oy] == 0)) {
+            // 打通墙
+            maze[wx][wy] = 0;
 
-            maze[newX][newY] = 0; // 设置新通道
-            addWalls(newX, newY); // 添加新墙到候选列表
+            // 确定新扩展的单元格
+            int newX = (maze[cx][cy] == 1) ? cx : ox;
+            int newY = (maze[cy][cy] == 1) ? cy : oy;
+
+            // 设置新通路
+            maze[newX][newY] = 0;
+            addWalls(newX, newY);
 
             // 可视化更新
             window->updateMazeData(maze);
@@ -390,63 +200,13 @@ void Maze::generateMazeprimVisual(FourWindow* window) {
         }
     }
 
-    // 设置终点（动态调整）
-    endX = rows - (rows % 2 ? 1 : 2);
-    endY = cols - (cols % 2 ? 1 : 2);
-    if (endX < rows && endY < cols) {
-        maze[endX][endY] = 2;
-        window->updateMazeData(maze);
-        window->update();
-    }
+    maze[startX][startY]=3;
+    maze[endX][endY] = 2;
+    window->updateMazeData(maze);
+    window->update();
 }
-void Maze::generateMazebfsVisual(FourWindow* window) {
-    if (maze.isEmpty() || maze[0].isEmpty()) return;
 
-    QQueue<QPair<int, int>> queue;
-    queue.enqueue({startX, startY});
-    maze[startX][startY] = 3;
-
-    std::random_device rd;
-    std::mt19937 g(rd());
-
-    while (!queue.isEmpty()) {
-        int x = queue.head().first;
-        int y = queue.head().second;
-        queue.dequeue();
-
-        QVector<int> directions = {0, 1, 2, 3};
-        std::shuffle(directions.begin(), directions.end(), g);
-
-        for (int dir : directions) {
-            int nx = x + DX[dir] * 2;
-            int ny = y + DY[dir] * 2;
-
-            if (nx >= 0 && nx < rows && ny >= 0 && ny < cols && maze[nx][ny] == 1) {
-                int wallX = x + DX[dir];
-                int wallY = y + DY[dir];
-
-                if (wallX >= 0 && wallX < rows && wallY >= 0 && wallY < cols) {
-                    maze[wallX][wallY] = 0;
-                    maze[nx][ny] = 0;
-
-                    window->updateMazeData(maze);
-                    queue.enqueue({nx, ny});
-
-                    window->update();
-                    QThread::msleep(30);
-                    QApplication::processEvents();
-                }
-            }
-        }
-    }
-
-    // 设置终点
-    if (endX < rows && endY < cols) {
-        maze[endX][endY] = 2;
-        window->updateMazeData(maze);
-        window->update();
-    }
-}
+// 从文件加载迷宫
 bool Maze::loadFromFile(const QString &filename) {
     QFile file(filename);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -553,6 +313,8 @@ int Maze::getRows() const{
 int Maze::getCols() const{
     return cols;
 }
+
+// 查找迷宫中的起点位置
 QPair<int, int> Maze::findStartPosition() {
     for (int i = 0; i < maze.size(); i++) {
         for (int j = 0; j < maze[i].size(); j++) {
@@ -565,6 +327,8 @@ QPair<int, int> Maze::findStartPosition() {
 
     return qMakePair(0, 0); // 默认返回 (0,0)，避免未找到的情况
 }
+
+// 查找迷宫中的终点位置
 QPair<int, int> Maze::findEndPosition() const {
     for (int i = 0; i < maze.size(); ++i) {
         for (int j = 0; j < maze[i].size(); ++j) {
@@ -574,4 +338,95 @@ QPair<int, int> Maze::findEndPosition() const {
         }
     }
     return qMakePair(-1, -1);
+}
+
+// 使用Kruskal算法生成迷宫，并可视化生成过程
+void Maze::generateMazeKruskalVisual(FourWindow* window) {
+    // 初始化全墙
+    maze = QVector<QVector<int>>(rows, QVector<int>(cols, 1));
+
+    // 生成所有可能的边（墙）
+    QVector<Edge> edges;
+    for (int x = 0; x < rows; x += 2) {
+        for (int y = 0; y < cols; y += 2) {
+            // 只处理奇数坐标的单元格（保证路径间隔）
+            if (x % 2 == 1 || y % 2 == 1) continue;
+
+            // 向右的墙
+            if (y + 2 < cols) {
+                edges.append({x, y, x, y+2, x, y+1});
+            }
+            // 向下的墙
+            if (x + 2 < rows) {
+                edges.append({x, y, x+2, y, x+1, y});
+            }
+        }
+    }
+
+    // 随机打乱边
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(edges.begin(), edges.end(), g);
+
+    // 并查集初始化
+    QVector<int> parent(rows * cols);
+    QVector<int> rank(rows * cols, 0);
+    for (int i = 0; i < rows*cols; ++i) {
+        parent[i] = i;
+    }
+
+    // 处理每条边
+    for (const Edge& edge : edges) {
+        int cell1 = edge.x1 * cols + edge.y1;
+        int cell2 = edge.x2 * cols + edge.y2;
+
+        if (findParent(parent, cell1) != findParent(parent, cell2)) {
+            // 打破墙壁
+            maze[edge.wallX][edge.wallY] = 0;
+            maze[edge.x1][edge.y1] = 0;  // 确保单元格本身是路径
+            maze[edge.x2][edge.y2] = 0;
+
+            // 更新可视化
+            window->updateMazeData(maze);
+            window->update();
+            QThread::msleep(20);
+            QApplication::processEvents();
+
+            // 合并集合
+            unionSets(parent, rank, cell1, cell2);
+        }
+    }
+
+    // 标记起点和终点
+    maze[startX][startY] = 3;
+    maze[endX][endY] = 2;
+    window->updateMazeData(maze);
+    window->update();
+}
+
+
+// 并查集的查找操作
+int Maze::findParent(QVector<int>& parent, int cell) {
+    if (parent[cell] != cell) {
+        parent[cell] = findParent(parent, parent[cell]);
+    }
+    return parent[cell];
+}
+
+
+// 并查集的合并操作
+void Maze::unionSets(QVector<int>& parent, QVector<int>& rank, int x, int y) {
+    int rootX = findParent(parent, x);
+    int rootY = findParent(parent, y);
+
+    if (rootX != rootY) {
+        if (rank[rootX] > rank[rootY]) {
+            parent[rootY] = rootX;
+        } else {
+            parent[rootX] = rootY;
+            if (rank[rootX] == rank[rootY]) {
+                rank[rootY]++;
+            }
+        }
+    }
 }

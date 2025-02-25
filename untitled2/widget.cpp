@@ -28,8 +28,12 @@ Widget::Widget(QWidget *parent)
     ,audioOutput_2(new QAudioOutput(this))
     ,audioOutput_3(new QAudioOutput(this))
     ,showVictory(false)
-    ,victoryScale(0.0)
+    ,victoryScale(0.0)  // 胜利动画缩放比例
     , victorySoundPlayed(false) // 初始化标志
+    ,failureScale(0.0)
+    ,failure_soundPlayed_2(false)
+    ,mMedia_4(new QMediaPlayer(this))    // 媒体播放器
+    ,audioOutput_4(new QAudioOutput(this))// 音频输出
 {
     ui->setupUi(this);
 
@@ -40,25 +44,42 @@ Widget::Widget(QWidget *parent)
     victoryTimer = new QTimer(this);
     connect(victoryTimer, &QTimer::timeout, this, [this]() {
         if (victoryScale < 1.0) {
-            victoryScale += 0.05;
+            victoryScale += 0.05;// 逐步增加缩放比例
             update();
         } else {
             victoryTimer->stop();
         }
     });
 
-    mMedia->setAudioOutput(audioOutput); // 关键：绑定音频输出
-    mMedia->setSource(QUrl("qrc:/res/music_2.mp3")); // 使用资源路径
+    // 添加失败动画定时器
+    failureTimer_2 = new QTimer(this);
+    connect(failureTimer_2, &QTimer::timeout, this, [this]() {
+        if (failureScale < 1.0) {
+            failureScale += 0.05;
+            update();
+        } else {
+            failureTimer_2->stop();
+        }
+    });
+
+     // 配置背景音乐
+    mMedia->setAudioOutput(audioOutput); // 绑定音频输出
+    mMedia->setSource(QUrl("qrc:/res/4.mp4")); // 使用资源路径
     audioOutput->setVolume(50); // 设置音量（0~100）
 
 
     mMedia_2->setAudioOutput(audioOutput_2);
     mMedia_2->setSource(QUrl("qrc:/res/ButtonSound.wav"));
-     audioOutput_2->setVolume(50);
+    audioOutput_2->setVolume(50);
 
-    mMedia_3->setAudioOutput(audioOutput_2);
+    mMedia_3->setAudioOutput(audioOutput_3);
     mMedia_3->setSource(QUrl("qrc:/res/victory_sound.mp3"));
     audioOutput_3->setVolume(50);
+
+
+    mMedia_4->setAudioOutput(audioOutput_4);
+    mMedia_4->setSource(QUrl("qrc:/res/failure_sound.mp3"));
+    audioOutput_4->setVolume(50);
 
     connect(ui->But1, &QPushButton::clicked, this, &Widget::onBackButtonClicked);
     connect(ui->btu2, &QPushButton::clicked, this, &Widget::onAutoPathButtonClicked);
@@ -67,6 +88,8 @@ Widget::Widget(QWidget *parent)
 
 Widget::~Widget()
 {
+
+    // 清理旧资源
     if (mtime) {
         mtime->stop();
         delete mtime;
@@ -76,6 +99,7 @@ Widget::~Widget()
     delete ui;
 }
 
+//设置迷宫参数
 void Widget::setMazeParameters(int rows, int cols, int startX, int startY, int endX, int endY) {
     this->mazeRows = rows;
     this->mazeCols = cols;
@@ -83,7 +107,7 @@ void Widget::setMazeParameters(int rows, int cols, int startX, int startY, int e
     this->startY = startY;
     this->endX = endX;
     this->endY = endY;
-    mMedia->play();
+    mMedia->play();   // 播放背景音乐
     resetGame();  // 先重置游戏
 
     if (!mpmap) return; // 确保 mpmap 初始化成功
@@ -92,11 +116,11 @@ void Widget::setMazeParameters(int rows, int cols, int startX, int startY, int e
 }
 
 
-
+// 重置游戏状态
 void Widget::resetGame()
 {
-    // 清理旧地图
-    // 添加调试输出
+
+
     qDebug() << "正在重置游戏...";
 
     // 先停止定时器
@@ -117,6 +141,8 @@ void Widget::resetGame()
         delete mrole;
         mrole = nullptr;
     }
+
+    // 初始化游戏状态变量
     victorySoundPlayed = false; // 重置音效播放标志
     gameWon = false;
     showVictory = false;
@@ -126,7 +152,7 @@ void Widget::resetGame()
     solutionPath.clear();
     showingPath = false;
 
-
+   // 创建新迷宫对象并加载文件
     Maze* maze=new(Maze);
     QString filePath = QFileDialog::getOpenFileName(this, "选择迷宫文件", "", "Text Files (*.txt);;All Files (*)");
     if (filePath.isEmpty()) {
@@ -144,7 +170,7 @@ void Widget::resetGame()
     mazeRows = maze->getmaze().size();
     mazeCols = (mazeRows > 0) ? maze->getmaze()[0].size() : 0;
 
-
+   // 设置起始点和角色位置
     QPair<int, int> startPos = maze->findStartPosition();
     startX = startPos.first;
     startY = startPos.second;
@@ -158,7 +184,7 @@ void Widget::resetGame()
     endY = endPos.second;
     // 初始化地图和角色
     mpmap = new Gameman(this);
-    mpmap->InitByData(maze->getmaze()); // 假设 Gameman 支持通过数据初始化
+    mpmap->InitByData(maze->getmaze());
 
     // 检查终点是否有效
     if (endX == -1 || endY == -1) {
@@ -166,6 +192,8 @@ void Widget::resetGame()
         return;
     }
 
+
+     // 创建新计时器
     if (!mtime) {
         mtime = new QTimer(this);
     }
@@ -176,11 +204,18 @@ void Widget::resetGame()
 void Widget::onBackButtonClicked()
 {
 
-    mMedia_2->play();
+    mMedia_2->play(); // 播放按钮音效
+
     if (mMedia) {
         mMedia->stop();  // 停止播放
-        // mMedia->deleteLater(); // 如果不再需要，可销毁对象（可选）
     }
+
+
+    // 重置失败相关状态
+    failureScale = 0.0;           // 重置动画缩放比例
+    failure_soundPlayed_2 = false; // 重置声音播放标志
+    failureTimer_2->stop();        // 停止失败动画定时器
+
 
     this->hide();
     if (parentWidget()) {
@@ -194,7 +229,7 @@ void Widget::paintEvent(QPaintEvent *event)
     Q_UNUSED(event);
     QPainter painter(this);
 
-
+   // 绘制背景图片
     QImage background("://res/background.jpg");
     if (!background.isNull()) {
         painter.drawImage(QRect(0, 0, 700, 500), background);
@@ -206,7 +241,7 @@ void Widget::paintEvent(QPaintEvent *event)
         mpmap->paint(&painter, QPoint(0, 0));
     }
 
-    // **确保角色正确绘制**
+    // 角色绘制
     if (mrole) {
         int cellWidth = 500 / mazeCols;
         int cellHeight = 500 / mazeRows;
@@ -234,7 +269,7 @@ void Widget::paintEvent(QPaintEvent *event)
         }
     }
 
-    // 绘制胜利标志（使用同一个painter）
+    // 绘制胜利标志
     if (showVictory) {
 
 
@@ -244,7 +279,6 @@ void Widget::paintEvent(QPaintEvent *event)
             int baseWidth = 200;  // 适当放大基础尺寸
             int baseHeight = 200;
 
-            // 添加调试输出
             qDebug() << "Drawing victory image at scale:" << victoryScale;
 
             int scaledWidth = baseWidth * victoryScale;
@@ -257,7 +291,7 @@ void Widget::paintEvent(QPaintEvent *event)
                 scaledHeight
                 );
 
-            // 使用主painter绘制
+
             painter.save();  // 保存当前绘制状态
             painter.setOpacity(victoryScale);
             painter.drawPixmap(targetRect, victoryPixmap);
@@ -268,10 +302,30 @@ void Widget::paintEvent(QPaintEvent *event)
     }
 
 
+    if (failureTimer_2->isActive() || failureScale > 0) {
+        QPixmap failurePixmap("://res/3.jpg");
+        if (!failurePixmap.isNull()) {
+            int baseWidth = 200;
+            int baseHeight = 200;
+            int scaledWidth = baseWidth * failureScale;
+            int scaledHeight = baseHeight * failureScale;
+            QRect targetRect(
+                (width() - scaledWidth) / 2,
+                (height() - scaledHeight) / 2 - 50,
+                scaledWidth,
+                scaledHeight
+                );
+            painter.save();
+            painter.setOpacity(failureScale);
+            painter.drawPixmap(targetRect, failurePixmap);
+            painter.restore();
+        }
+    }
+
 
     // 绘制路径（排除角色当前位置）
     if (showingPath && !solutionPath.isEmpty()) {
-        QPainter painter(this);
+
         int cellWidth = 500 / mazeCols;
         int cellHeight = 500 / mazeRows;
 
@@ -302,6 +356,8 @@ void Widget::keyPressEvent(QKeyEvent *event)
     }
     if (gameWon) return;
 
+
+    // 处理方向键和WASD按键
     switch (event->key()) {
     case Qt::Key_W:
     case Qt::Key_Up:
@@ -324,13 +380,17 @@ void Widget::keyPressEvent(QKeyEvent *event)
     }
 }
 
+// 角色移动逻辑
 void Widget::moveRole(int dRow, int dCol)
 {
     if (!mrole || gameWon) return;
 
+    // 计算新位置
     int newRow = mrole->row() + dRow;
     int newCol = mrole->col() + dCol;
 
+
+    // 边界检查和碰撞检测
     if (newRow < 0 || newRow >= mazeRows || newCol < 0 || newCol >= mazeCols) return;
     if (mpmap->isWall(newRow, newCol)) return;
 
@@ -348,12 +408,12 @@ void Widget::closeEvent(QCloseEvent* event) {
     qDebug() << "Widget is closing...";
     event->accept(); // 接受关闭事件
 }
-// widget.cpp
+
 void Widget::onAutoPathButtonClicked() {
     solutionPath.clear();
     showingPath = false;
     mMedia_2->play();
-    if (findPathDFS(solutionPath)) {
+    if (findPathDFS(solutionPath)) { // 使用DFS算法找路径
         showingPath = true;
         update(); // 触发重绘
     } else {
@@ -366,12 +426,23 @@ void Widget::onNoSolutionButtonClicked() {
     mMedia_2->play();
     QList<QPoint> dummyPath;
     if (!findPathDFS(dummyPath)) {
-        QMessageBox::warning(this, "提示", "迷宫无解！");
+        failureScale = 0.0;
+        failure_soundPlayed_2 = false; // 重置标志以允许再次播放
+        if (mtime) mtime->stop();
+        failureTimer_2->start(50);
+
+        if (!failure_soundPlayed_2) {
+            mMedia_4->play();
+            failure_soundPlayed_2 = true;
+        }
+        if (mMedia) mMedia->stop();
+        update();
     } else {
         QMessageBox::information(this, "提示", "存在可行路径");
     }
 }
 
+//关卡
 void Widget::setMaze(int level, int rows, int cols, int startX, int startY, int endX, int endY) {
     this->mazeRows = rows;
     this->mazeCols = cols;
@@ -383,10 +454,10 @@ void Widget::setMaze(int level, int rows, int cols, int startX, int startY, int 
     resetGame1(level);  // 传递关卡号
 
     if(level==1){
-         qDebug() << "1...";
+        qDebug() << "1...";
     }
     if(level==2){
-         qDebug() << "2...";
+        qDebug() << "2...";
     }
     if (!mpmap) return;
 
@@ -405,7 +476,8 @@ void Widget::resetGame1(int level) {
     showVictory = false;
     victoryScale = 0.0;
     victoryTimer->stop();
-    // 动态生成文件名（例如：taxt1.txt, taxt2.txt）
+
+    // 动态生成文件名
     QString fileName = QString("新建文件夹/taxt%1.txt").arg(level);
     QString appDir = QCoreApplication::applicationDirPath();
     QString filePath = QDir(appDir).filePath(fileName);
@@ -421,7 +493,7 @@ void Widget::resetGame1(int level) {
         return;
     }
 
-    // 初始化角色和地图（保持原有逻辑）
+    // 初始化角色和地图
     mazeRows = maze->getmaze().size();
     mazeCols = (mazeRows > 0) ? maze->getmaze()[0].size() : 0;
 
@@ -450,9 +522,13 @@ void Widget::resetGame1(int level) {
     update();
     delete maze;
 }
+
+//寻路
 bool Widget::findPathDFS(QList<QPoint>& path) {
     if (!mpmap || !mrole) return false;
 
+
+   // 使用栈实现的DFS算法
     QStack<QPoint> stack;
     QVector<QVector<bool>> visited(mazeRows, QVector<bool>(mazeCols, false));
 
@@ -480,7 +556,7 @@ bool Widget::findPathDFS(QList<QPoint>& path) {
             return true;
         }
 
-        // 四个方向：上、左、下、右
+        // 四个方向：右，上，左，下
         int dx[] = {-1, 0, 1, 0};
         int dy[] = {0, -1, 0, 1};
 
@@ -501,3 +577,4 @@ bool Widget::findPathDFS(QList<QPoint>& path) {
     }
     return false;
 }
+

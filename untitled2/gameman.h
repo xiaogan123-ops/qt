@@ -41,8 +41,7 @@ public:
     // 清理迷宫数据
     void clear();
 
-    // 查找所有路径（返回多个路径，每条路径是点的列表）
-    QVector<QVector<QPair<int, int>>> findAllPaths(int sx, int sy, int ex, int ey);
+
 
     void GenerateMazeDFS();
     int mrow;  // 行数

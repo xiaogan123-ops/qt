@@ -59,7 +59,7 @@ void Gameman::paint(QPainter* _p, QPoint _pos) {
     }
 
 }
-
+// 初始化迷宫
 bool Gameman::InitByData(const QVector<QVector<int>>& data) {
     clear(); // 清除旧数据
 
@@ -99,10 +99,12 @@ bool Gameman::InitByData(const QVector<QVector<int>>& data) {
     return true;
 }
 
+//检查是否为墙壁
 bool Gameman::isWall(int row, int col) const {
     return row < 0 || row >= mrow || col < 0 || col >= mcol || mpArr[row][col] == 1;
 }
 
+//获取单元格值
 int Gameman::getCell(int row, int col) const {
     if (row >= 0 && row < mrow && col >= 0 && col < mcol) {
         return mpArr[row][col];
@@ -110,6 +112,7 @@ int Gameman::getCell(int row, int col) const {
     return -1; // 返回 -1 表示无效
 }
 
+//设置单元格值
 void Gameman::setCell(int row, int col, int value) {
     if (row >= 0 && row < mrow && col >= 0 && col < mcol) {
         mpArr[row][col] = value;
@@ -122,9 +125,3 @@ void Gameman::clear() {
     mrow = 0;
     mcol = 0;
 }
-
-
-
-
-
-

@@ -20,7 +20,7 @@ public:
     ~SecondWindow();
 
 protected:
-    void paintEvent(QPaintEvent *event) override; // 重写 paintEvent 以绘制背景
+    void paintEvent(QPaintEvent *event) override; // 绘制背景
 
 private slots:
     void onNextButtonClicked(); // 处理跳转到下一个界面的按钮点击事件

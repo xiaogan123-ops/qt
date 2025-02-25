@@ -22,15 +22,20 @@ SecondWindow::SecondWindow(QWidget *parent)
     ui->setupUi(this);
     setFixedSize(700, 500);
 
+
+
+    // 配置音频播放器
     mMedia->setAudioOutput(audioOutput);
     mMedia->setSource(QUrl("qrc:/res/ButtonSound.wav"));
     audioOutput->setVolume(50);
 
-    // 其他原有配置保持不变...
+    // 初始化按钮功能
     widget->setWindowFlags(Qt::Window);
     connect(ui->btu2, &QPushButton::clicked, this, &SecondWindow::onNextButtonClicked);
     connect(ui->btu1, &QPushButton::clicked, this, &SecondWindow::onBackButtonClicked);
     connect(ui->btu3,&QPushButton::clicked, this, &SecondWindow::onclicked);
+
+    // 动态绑定迷宫关卡按钮
     for (int level = 2; level <= 16; level++) {
         QString buttonName = QString("btu%1").arg(level + 2); // btu3对应level1, btu4对应level2...
 
@@ -59,11 +64,11 @@ void SecondWindow::onBackButtonClicked()
     qDebug() << "Back button clicked";
     this->hide();                      // 隐藏当前窗口
     if (parentWidget()) {
-        parentWidget()->show();        // 显示父窗口（MainWindow）
+        parentWidget()->show();
     } else {
         qDebug() << "Parent widget is null";
     }
-     mMedia->play();
+    mMedia->play();
 
 }
 
@@ -71,10 +76,10 @@ void SecondWindow::onNextButtonClicked(){
 
     this->hide();
     widget->setMazeParameters( maze->getRows(), maze->getCols(),
-                    maze->getstartx(), maze->getstarty(),
-                    maze->getendx(), maze->getendy());
-     widget->show();
-      mMedia->play();
+                              maze->getstartx(), maze->getstarty(),
+                              maze->getendx(), maze->getendy());
+    widget->show();
+    mMedia->play();
 
 }
 void SecondWindow::onclicked(){
@@ -89,6 +94,7 @@ SecondWindow::~SecondWindow()
     delete ui;
 }
 
+// 绘制窗口背景
 void SecondWindow::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
