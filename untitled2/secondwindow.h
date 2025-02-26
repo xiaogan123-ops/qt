@@ -6,6 +6,7 @@
 #include"maze.h"
 #include<QMediaPlayer>
 #include <QAudioOutput>
+#include"settingwindow.h"
 QT_BEGIN_NAMESPACE
 namespace Ui { class SecondWindow; }
 QT_END_NAMESPACE
@@ -33,6 +34,8 @@ private:
     Widget *widget; // Widget 的指针
     QMediaPlayer *mMedia;    // 媒体播放器
     QAudioOutput *audioOutput; // 音频输出
+
+    settingWindow *settingwindow;
 };
 
 #endif // SECONDWINDOW_H

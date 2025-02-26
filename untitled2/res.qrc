@@ -23,6 +23,9 @@
         <file>res/3.jpg</file>
         <file>res/failure_sound.mp3</file>
         <file>res/4.mp4</file>
+        <file>res/sound_2.jpg</file>
+        <file>res/sound_1.jpg</file>
+        <file>res/5.jpg</file>
     </qresource>
     <qresource prefix="/audio"/>
     <qresource prefix="/adio"/>

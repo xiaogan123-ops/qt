@@ -18,11 +18,14 @@ FourWindow::FourWindow(QWidget *parent)
     ,starty(1)
     ,mMedia(new QMediaPlayer(this))
     ,audioOutput(new QAudioOutput(this))
+    ,settingwindow(settingWindow::instance(this))
 
 {
 
     ui->setupUi(this);
-    setFixedSize(700, 500);
+
+     setFixedSize(700, 500);
+
     connect(ui->btu1,&QPushButton::clicked,this,&FourWindow::onBackButtonClicked);
     ui->spinBox->setRange(11, 50); // 设置迷宫行数的范围
     ui->spinBox_2->setRange(11, 50); // 设置迷宫列数的范围
@@ -61,6 +64,8 @@ FourWindow::FourWindow(QWidget *parent)
     mMedia->setAudioOutput(audioOutput);
     mMedia->setSource(QUrl("qrc:/res/ButtonSound.wav"));
     audioOutput->setVolume(50);
+
+    settingwindow->registerAudioOutput(audioOutput);
 
 
 }

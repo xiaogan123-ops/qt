@@ -8,6 +8,7 @@
 #include<QMediaPlayer>
 #include <QAudioOutput>
 #include <QLabel>
+#include"settingwindow.h"
 QT_BEGIN_NAMESPACE
 namespace Ui { class Widget; }
 QT_END_NAMESPACE
@@ -79,6 +80,8 @@ private:
     qreal failureScale;   // 失败动画缩放比例
     QTimer* failureTimer_2;   // 失败动画定时器
     bool failure_soundPlayed_2; // 新增成员变量
+
+    settingWindow *settingwindow;
 
 signals:
     void back(); // 返回信号

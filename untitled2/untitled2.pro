@@ -15,6 +15,7 @@ SOURCES += \
     maze.cpp \
     role.cpp \
     secondwindow.cpp \
+    settingwindow.cpp \
     widget.cpp
 
 HEADERS += \
@@ -24,12 +25,14 @@ HEADERS += \
     maze.h \
     role.h \
     secondwindow.h \
+    settingwindow.h \
     widget.h
 
 FORMS += \
     fourwindow.ui \
     mainwindow.ui \
     secondwindow.ui \
+    settingwindow.ui \
     widget.ui
 
 # Default rules for deployment.

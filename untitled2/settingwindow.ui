@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>settingWindow</class>
+ <widget class="QMainWindow" name="settingWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -10,31 +10,28 @@
     <height>600</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <pointsize>24</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
-   <string>maze</string>
+   <string>Setting</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QPushButton" name="btu1">
     <property name="geometry">
      <rect>
-      <x>360</x>
-      <y>350</y>
-      <width>131</width>
-      <height>81</height>
+      <x>130</x>
+      <y>370</y>
+      <width>151</width>
+      <height>91</height>
      </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Microsoft PhagsPa</family>
-      <pointsize>24</pointsize>
-      <italic>false</italic>
-      <bold>false</bold>
-     </font>
     </property>
     <property name="styleSheet">
      <string notr="true">QWidget {
     /* 分层背景：图片在下，渐变在上 */
-    background-image: url(:/res/ground.jpg),
+    background-image: url(:/res/1.jpg),
                      qradialgradient(spread:repeat,
                                     cx:0.5, cy:0.5, radius:0.077,
                                     fx:0.5, fy:0.5,
@@ -49,26 +46,26 @@
     background-color: rgb(85, 170, 127);
     
     /* 字体设置 */
-    font: 24pt &quot;Microsoft PhagsPa&quot;;
+    font: 18pt &quot;Microsoft PhagsPa&quot;;
 }</string>
     </property>
     <property name="text">
-     <string>设置</string>
+     <string>返回</string>
     </property>
    </widget>
    <widget class="QPushButton" name="btu2">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>350</y>
-      <width>131</width>
-      <height>81</height>
+      <x>240</x>
+      <y>190</y>
+      <width>151</width>
+      <height>91</height>
      </rect>
     </property>
     <property name="font">
      <font>
       <family>Microsoft PhagsPa</family>
-      <pointsize>24</pointsize>
+      <pointsize>18</pointsize>
       <italic>false</italic>
       <bold>false</bold>
      </font>
@@ -76,7 +73,7 @@
     <property name="styleSheet">
      <string notr="true">QWidget {
     /* 分层背景：图片在下，渐变在上 */
-    background-image: url(:/res/ground.jpg),
+    background-image: url(:/res/1.jpg),
                      qradialgradient(spread:repeat,
                                     cx:0.5, cy:0.5, radius:0.077,
                                     fx:0.5, fy:0.5,
@@ -91,76 +88,29 @@
     background-color: rgb(85, 170, 127);
     
     /* 字体设置 */
-    font: 24pt &quot;Microsoft PhagsPa&quot;;
+    font: 18pt &quot;Microsoft PhagsPa&quot;;
 }</string>
     </property>
     <property name="text">
-     <string>开始游戏</string>
+     <string>声音</string>
     </property>
-   </widget>
-   <widget class="QPushButton" name="btu3">
-    <property name="geometry">
-     <rect>
-      <x>520</x>
-      <y>350</y>
-      <width>131</width>
-      <height>81</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Microsoft PhagsPa</family>
-      <pointsize>24</pointsize>
-      <italic>false</italic>
-      <bold>false</bold>
-     </font>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QWidget {
-    /* 分层背景：图片在下，渐变在上 */
-    background-image: url(:/res/ground.jpg),
-                     qradialgradient(spread:repeat,
-                                    cx:0.5, cy:0.5, radius:0.077,
-                                    fx:0.5, fy:0.5,
-                                    stop:0 rgba(0, 169, 255, 58),
-                                    stop:0.5 rgba(0, 0, 0, 58),
-                                    stop:1 rgba(0, 169, 255, 58));
-    
-    /* 背景混合模式 */
-    background-blend-mode: overlay;
-    
-    /* 备用背景色 */
-    background-color: rgb(85, 170, 127);
-    
-    /* 字体设置 */
-    font: 24pt &quot;Microsoft PhagsPa&quot;;
-}</string>
-    </property>
-    <property name="text">
-     <string>退出游戏</string>
+    <property name="checkable">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QPushButton" name="btu4">
     <property name="geometry">
      <rect>
-      <x>190</x>
-      <y>350</y>
-      <width>131</width>
+      <x>240</x>
+      <y>40</y>
+      <width>151</width>
       <height>81</height>
      </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Microsoft PhagsPa</family>
-      <pointsize>24</pointsize>
-      <italic>false</italic>
-      <bold>false</bold>
-     </font>
     </property>
     <property name="styleSheet">
      <string notr="true">QWidget {
     /* 分层背景：图片在下，渐变在上 */
-    background-image: url(:/res/ground.jpg),
+    background-image: url(:/res/1.jpg),
                      qradialgradient(spread:repeat,
                                     cx:0.5, cy:0.5, radius:0.077,
                                     fx:0.5, fy:0.5,
@@ -175,11 +125,53 @@
     background-color: rgb(85, 170, 127);
     
     /* 字体设置 */
-    font: 24pt &quot;Microsoft PhagsPa&quot;;
+    font: 18pt &quot;Microsoft PhagsPa&quot;;
 }</string>
     </property>
     <property name="text">
-     <string>制作迷宫</string>
+     <string>地图大小</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btu3">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>370</y>
+      <width>161</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Microsoft PhagsPa</family>
+      <pointsize>18</pointsize>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QWidget {
+    /* 分层背景：图片在下，渐变在上 */
+    background-image: url(:/res/1.jpg),
+                     qradialgradient(spread:repeat,
+                                    cx:0.5, cy:0.5, radius:0.077,
+                                    fx:0.5, fy:0.5,
+                                    stop:0 rgba(0, 169, 255, 58),
+                                    stop:0.5 rgba(0, 0, 0, 58),
+                                    stop:1 rgba(0, 169, 255, 58));
+    
+    /* 背景混合模式 */
+    background-blend-mode: overlay;
+    
+    /* 备用背景色 */
+    background-color: rgb(85, 170, 127);
+    
+    /* 字体设置 */
+    font: 18pt &quot;Microsoft PhagsPa&quot;;
+}</string>
+    </property>
+    <property name="text">
+     <string>关于</string>
     </property>
    </widget>
   </widget>
@@ -189,7 +181,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>17</height>
+     <height>36</height>
     </rect>
    </property>
   </widget>

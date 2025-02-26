@@ -11,12 +11,14 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
     , secondWindow(new SecondWindow(this))
     ,fourwindow(new FourWindow(this))
+    ,settingwindow(settingWindow::instance(this))
     ,mMedia(new QMediaPlayer(this))
     ,audioOutput(new QAudioOutput(this))
 {
     ui->setupUi(this);
-    setFixedSize(700, 500);
+     setFixedSize(700, 500);
 
+     settingWindow::setMainWindow(this); // 设置主窗口
      // 连接按钮信号与槽函数
     connect(ui->btu2, &QPushButton::clicked, this, &MainWindow::onNextButtonClicked);
     connect(ui->btu3, &QPushButton::clicked, this,&MainWindow::onExitButtonClicked);
@@ -27,6 +29,8 @@ MainWindow::MainWindow(QWidget *parent)
     mMedia->setAudioOutput(audioOutput);
     mMedia->setSource(QUrl("qrc:/res/ButtonSound.wav"));
     audioOutput->setVolume(50);
+
+    settingwindow->registerAudioOutput(audioOutput);
 
 
 
@@ -48,6 +52,14 @@ void MainWindow::onExitButtonClicked(){
             qApp->quit(); // 音效播放完成后退出
         }
     });
+
+}
+
+void MainWindow::onAboutButtonClicked()
+{
+    mMedia->play();
+    this->hide();
+    settingwindow->show();
 
 }
 void MainWindow::onNextButtonClicked()
@@ -79,12 +91,4 @@ void MainWindow::paintEvent(QPaintEvent *event)
     }
 }
 
-void MainWindow::onAboutButtonClicked()
-{
-    mMedia->play();
-    QMessageBox::information(this, "关于游戏",
-                             "Code by Xiaogan\n\n"
-                             "Language: C++ and Qt\n\n"
-                             "Time: 2025-2");
 
-}

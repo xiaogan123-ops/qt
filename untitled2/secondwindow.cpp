@@ -18,6 +18,7 @@ SecondWindow::SecondWindow(QWidget *parent)
     , maze(new Maze())
     ,mMedia(new QMediaPlayer(this))
     ,audioOutput(new QAudioOutput(this))
+    ,settingwindow(settingWindow::instance(this))
 {
     ui->setupUi(this);
     setFixedSize(700, 500);
@@ -28,6 +29,7 @@ SecondWindow::SecondWindow(QWidget *parent)
     mMedia->setAudioOutput(audioOutput);
     mMedia->setSource(QUrl("qrc:/res/ButtonSound.wav"));
     audioOutput->setVolume(50);
+    settingwindow->registerAudioOutput(audioOutput);
 
     // 初始化按钮功能
     widget->setWindowFlags(Qt::Window);

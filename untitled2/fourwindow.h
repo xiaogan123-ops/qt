@@ -6,6 +6,7 @@
 #include"maze.h"
 #include<QMediaPlayer>
 #include <QAudioOutput>
+#include"settingwindow.h"
 namespace Ui {
 class FourWindow;
 }
@@ -51,6 +52,8 @@ private:
 
     QMediaPlayer *mMedia;    // 媒体播放器
     QAudioOutput *audioOutput; // 音频输出
+
+    settingWindow *settingwindow;
 };
 
 #endif // FOURWINDOW_H

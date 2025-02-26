@@ -6,6 +6,8 @@
 #include"fourwindow.h"
 #include<QMediaPlayer>
 #include <QAudioOutput>
+#include"settingwindow.h"
+#include"settingwindow.h"
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -31,6 +33,7 @@ private:
     Ui::MainWindow *ui;
     SecondWindow *secondWindow; // SecondWindow 的指针
     FourWindow *fourwindow;
+    settingWindow *settingwindow;
 
     QMediaPlayer *mMedia;    // 媒体播放器
     QAudioOutput *audioOutput; // 音频输出

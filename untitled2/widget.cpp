@@ -34,11 +34,11 @@ Widget::Widget(QWidget *parent)
     ,failure_soundPlayed_2(false)
     ,mMedia_4(new QMediaPlayer(this))    // 媒体播放器
     ,audioOutput_4(new QAudioOutput(this))// 音频输出
+    ,settingwindow(settingWindow::instance(this))
 {
     ui->setupUi(this);
 
-    setFixedSize(700, 500);
-
+     setFixedSize(700, 500);
 
     // 添加胜利动画定时器
     victoryTimer = new QTimer(this);
@@ -66,20 +66,22 @@ Widget::Widget(QWidget *parent)
     mMedia->setAudioOutput(audioOutput); // 绑定音频输出
     mMedia->setSource(QUrl("qrc:/res/4.mp4")); // 使用资源路径
     audioOutput->setVolume(50); // 设置音量（0~100）
-
+    settingwindow->registerAudioOutput(audioOutput);
 
     mMedia_2->setAudioOutput(audioOutput_2);
     mMedia_2->setSource(QUrl("qrc:/res/ButtonSound.wav"));
     audioOutput_2->setVolume(50);
+    settingwindow->registerAudioOutput(audioOutput_2);
 
     mMedia_3->setAudioOutput(audioOutput_3);
     mMedia_3->setSource(QUrl("qrc:/res/victory_sound.mp3"));
     audioOutput_3->setVolume(50);
-
+    settingwindow->registerAudioOutput(audioOutput_3);
 
     mMedia_4->setAudioOutput(audioOutput_4);
     mMedia_4->setSource(QUrl("qrc:/res/failure_sound.mp3"));
     audioOutput_4->setVolume(50);
+    settingwindow->registerAudioOutput(audioOutput_4);
 
     connect(ui->But1, &QPushButton::clicked, this, &Widget::onBackButtonClicked);
     connect(ui->btu2, &QPushButton::clicked, this, &Widget::onAutoPathButtonClicked);
