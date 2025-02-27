@@ -8,6 +8,7 @@
 #include <QTextStream>
 #include <QInputDialog>
 #include<QFileDialog>
+#include<QSettings>
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Widget)
@@ -38,7 +39,7 @@ Widget::Widget(QWidget *parent)
 {
     ui->setupUi(this);
 
-     setFixedSize(700, 500);
+     setFixedSize(850, 600);
 
     // 添加胜利动画定时器
     victoryTimer = new QTimer(this);
@@ -234,7 +235,7 @@ void Widget::paintEvent(QPaintEvent *event)
    // 绘制背景图片
     QImage background("://res/background.jpg");
     if (!background.isNull()) {
-        painter.drawImage(QRect(0, 0, 700, 500), background);
+        painter.drawImage(QRect(0, 0, 850, 600), background);
     } else {
         qDebug() << "Failed to load background image.";
     }
@@ -245,14 +246,15 @@ void Widget::paintEvent(QPaintEvent *event)
 
     // 角色绘制
     if (mrole) {
-        int cellWidth = 500 / mazeCols;
-        int cellHeight = 500 / mazeRows;
+        int cellWidth = 600 / mazeCols;
+        int cellHeight = 600 / mazeRows;
         mrole->Paint(&painter, QPoint(0, 0), cellWidth, cellHeight);
     }
 
 
     // 检查胜利状态
     if (mrole && mrole->row() == endX && mrole->col() == endY && !gameWon) {
+        levelComplete();
         gameWon = true;
         showVictory = true;
         victoryScale = 0.0;
@@ -446,6 +448,7 @@ void Widget::onNoSolutionButtonClicked() {
 
 //关卡
 void Widget::setMaze(int level, int rows, int cols, int startX, int startY, int endX, int endY) {
+     currentLevel = level; // 关键！设置当前关卡
     this->mazeRows = rows;
     this->mazeCols = cols;
     this->startX = startX;
@@ -580,3 +583,12 @@ bool Widget::findPathDFS(QList<QPoint>& path) {
     return false;
 }
 
+void Widget::levelComplete() {
+      int nextLevel = currentLevel + 1;
+    if(currentLevel==1){
+      nextLevel = currentLevel + 1;
+    }
+    if (nextLevel <= 17) {
+        emit levelUnlocked(nextLevel); // 直接发射信号，由SecondWindow处理
+    }
+}

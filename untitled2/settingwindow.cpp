@@ -24,8 +24,8 @@ settingWindow::settingWindow(QWidget *parent)
     , audioOutput(new QAudioOutput(this))
 {
     ui->setupUi(this);
-    setMinimumSize(700, 500);
-     setFixedSize(700, 500);
+    setMinimumSize(850, 600);
+     setFixedSize(850, 600);
 
     // 初始化音频
     mMedia->setAudioOutput(audioOutput);
@@ -45,7 +45,7 @@ settingWindow::settingWindow(QWidget *parent)
     connect(this, &settingWindow::globalMuteChanged, this, &settingWindow::updateSoundIcon);
     connect(ui->btu1, &QPushButton::clicked, this, &settingWindow::onBackButtonClicked);
     connect(ui->btu3, &QPushButton::clicked, this, &settingWindow::onAboutButtonClicked);
-    connect(ui->btu4, &QPushButton::clicked, this, &settingWindow::onMapSizeButtonClicked);
+
 }
 
 void settingWindow::registerAudioOutput(QAudioOutput *output) {
@@ -131,7 +131,7 @@ void settingWindow::paintEvent(QPaintEvent *event)
     // 绘制背景
     QImage background("://res/5.jpg");
     if (!background.isNull()) {
-        painter.drawImage(QRect(0, 0, 700, 500), background);
+        painter.drawImage(QRect(0, 0, 850, 600), background);
     } else {
         qDebug() << "Failed to load background image.";
     }

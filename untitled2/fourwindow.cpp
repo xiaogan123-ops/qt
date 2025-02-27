@@ -24,7 +24,7 @@ FourWindow::FourWindow(QWidget *parent)
 
     ui->setupUi(this);
 
-     setFixedSize(700, 500);
+     setFixedSize(850, 600);
 
     connect(ui->btu1,&QPushButton::clicked,this,&FourWindow::onBackButtonClicked);
     ui->spinBox->setRange(11, 50); // 设置迷宫行数的范围
@@ -199,7 +199,7 @@ void FourWindow::paintEvent(QPaintEvent *event)
     // 绘制背景
     QImage background("://res/background.jpg");
     if (!background.isNull()) {
-        painter.drawImage(QRect(0, 0, 700, 500), background);
+        painter.drawImage(QRect(0, 0, 850, 600), background);
     } else {
         qDebug() << "Failed to load background image.";
     }

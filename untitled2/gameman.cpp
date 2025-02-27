@@ -31,8 +31,8 @@ void Gameman::paint(QPainter* _p, QPoint _pos) {
     }
 
 
-    int cellWidth = 500 / mcol;
-    int cellHeight = 500 / mrow;
+    int cellWidth = 600 / mcol;
+    int cellHeight = 600 / mrow;
 
     for (int i = 0; i < mrow; i++) {
         for (int j = 0; j < mcol; j++) {

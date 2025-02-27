@@ -26,6 +26,7 @@
         <file>res/sound_2.jpg</file>
         <file>res/sound_1.jpg</file>
         <file>res/5.jpg</file>
+        <file>res/6.png</file>
     </qresource>
     <qresource prefix="/audio"/>
     <qresource prefix="/adio"/>

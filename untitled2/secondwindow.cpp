@@ -21,7 +21,7 @@ SecondWindow::SecondWindow(QWidget *parent)
     ,settingwindow(settingWindow::instance(this))
 {
     ui->setupUi(this);
-    setFixedSize(700, 500);
+    setFixedSize(850, 600);
 
 
 
@@ -37,12 +37,29 @@ SecondWindow::SecondWindow(QWidget *parent)
     connect(ui->btu1, &QPushButton::clicked, this, &SecondWindow::onBackButtonClicked);
     connect(ui->btu3,&QPushButton::clicked, this, &SecondWindow::onclicked);
 
-    // 动态绑定迷宫关卡按钮
-    for (int level = 2; level <= 16; level++) {
-        QString buttonName = QString("btu%1").arg(level + 2); // btu3对应level1, btu4对应level2...
 
+
+    m_unlockedLevels.clear();
+    m_unlockedLevels.insert(1, true);  // 默认解锁第三关（显示为第一关）
+    for(int level = 2; level <= 16; ++level) {
+        m_unlockedLevels.insert(level, false);
+    }
+    // 动态绑定迷宫关卡按钮
+    for (int level = 3 ; level <= 17; level++) { // 处理1-15关
+
+        QString buttonName = QString("btu%1").arg(level + 2);
         QPushButton* btn = findChild<QPushButton*>(buttonName);
+        if (level == 2) { // 调试第0关（实际level2）
+            qDebug() << "找到按钮指针：" << btn;
+        }
         if (btn) {
+            // 设置初始解锁状态
+            bool isUnlocked = m_unlockedLevels.value(level, false);
+            btn->setEnabled(isUnlocked);
+            btn->setIcon(isUnlocked ? QIcon(":/res/1.png") : QIcon(":/res/6.png"));
+            btn->setIconSize(QSize(40, 40));
+
+            // 连接信号
             connect(btn, &QPushButton::clicked, [this, level]() {
                 this->hide();
                 mMedia->play();
@@ -55,11 +72,38 @@ SecondWindow::SecondWindow(QWidget *parent)
     }
 
 
+    // ui->btu4->setEnabled(false);
+    //  ui->btu4->setIcon(false ? QIcon() : QIcon(":/res/6.png"));
+    //  ui->btu4->setIconSize(QSize(40, 40));
+
+    connect(widget, &Widget::levelUnlocked, this, [this](int level){
+        if (level >= 1 && level <= 17) {
+            if(level==2){
+                level+=1;
+            }
+            m_unlockedLevels.insert(level, true);
+            qDebug() << "解锁关卡：" << level;
+            updateLevelButtons();
+        }
+    });
 
 
 
 }
+void SecondWindow::updateLevelButtons() {
+    for (int level = 3; level <= 17; level++) {
+        QString buttonName = QString("btu%1").arg(level + 2);
+        QPushButton* btn = findChild<QPushButton*>(buttonName);
+        if (btn) {
 
+            bool isUnlocked = m_unlockedLevels.value(level, false);
+            qDebug()<<isUnlocked;
+            btn->setEnabled(isUnlocked);
+            btn->setIcon(isUnlocked ? QIcon() : QIcon(":/res/6.png"));
+            btn->setIconSize(QSize(40, 40));
+        }
+    }
+}
 // 返回 MainWindow
 void SecondWindow::onBackButtonClicked()
 {
@@ -105,7 +149,7 @@ void SecondWindow::paintEvent(QPaintEvent *event)
     // 绘制背景
     QImage background("://res/background2.jpg");
     if (!background.isNull()) {
-        painter.drawImage(QRect(0, 0, 700, 500), background);
+        painter.drawImage(QRect(0, 0, 850, 600), background);
     } else {
         qDebug() << "Failed to load background image.";
     }

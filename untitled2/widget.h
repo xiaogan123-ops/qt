@@ -33,6 +33,7 @@ public:
 
     bool findPathDFS(QList<QPoint>& path);// DFS寻路算法
 
+    void levelComplete();
 
 
 protected:
@@ -82,9 +83,11 @@ private:
     bool failure_soundPlayed_2; // 新增成员变量
 
     settingWindow *settingwindow;
+     int currentLevel = 0; // 记录当前正在玩的关卡
 
 signals:
     void back(); // 返回信号
+     void levelUnlocked(int level);
 
 private slots:
     void onBackButtonClicked(); // 返回按钮点击事件

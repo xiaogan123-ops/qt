@@ -7,6 +7,7 @@
 #include<QMediaPlayer>
 #include <QAudioOutput>
 #include"settingwindow.h"
+#include <QMap>
 QT_BEGIN_NAMESPACE
 namespace Ui { class SecondWindow; }
 QT_END_NAMESPACE
@@ -19,6 +20,8 @@ public:
     explicit SecondWindow(QWidget *parent = nullptr);
 
     ~SecondWindow();
+    void updateLevelButtons();
+
 
 protected:
     void paintEvent(QPaintEvent *event) override; // 绘制背景
@@ -36,6 +39,7 @@ private:
     QAudioOutput *audioOutput; // 音频输出
 
     settingWindow *settingwindow;
+     QMap<int, bool> m_unlockedLevels; // 添加关卡状态存储
 };
 
 #endif // SECONDWINDOW_H

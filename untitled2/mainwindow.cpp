@@ -16,7 +16,7 @@ MainWindow::MainWindow(QWidget *parent)
     ,audioOutput(new QAudioOutput(this))
 {
     ui->setupUi(this);
-     setFixedSize(700, 500);
+     setFixedSize(850, 600);
 
      settingWindow::setMainWindow(this); // 设置主窗口
      // 连接按钮信号与槽函数
@@ -85,7 +85,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
     // Draw background
     QImage background("://res/c.jpg");
     if (!background.isNull()) {
-        painter.drawImage(QRect(0, 0, 700, 500), background);
+        painter.drawImage(QRect(0, 0, 850, 600), background);
     } else {
         qDebug() << "Failed to load background image.";
     }
