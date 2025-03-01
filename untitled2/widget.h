@@ -9,6 +9,8 @@
 #include <QAudioOutput>
 #include <QLabel>
 #include"settingwindow.h"
+#include "monster.h"
+#include<QMutex>
 QT_BEGIN_NAMESPACE
 namespace Ui { class Widget; }
 QT_END_NAMESPACE
@@ -34,21 +36,27 @@ public:
     bool findPathDFS(QList<QPoint>& path);// DFS寻路算法
 
     void levelComplete();
-
+    QMutex moveMutex;
+    int mazeRows;     // 迷宫行数
+    int mazeCols;     // 迷宫列数
+    void handleGameFailure();
 
 protected:
     void paintEvent(QPaintEvent *event) override;  // 绘制事件
     void keyPressEvent(QKeyEvent *event) override; // 键盘事件
     void closeEvent(QCloseEvent *event) override;  // 关闭事件
 
+private slots:
+    void moveMonster();
+    void checkCollision();
+private slots:
+    void updateMonster(); // 定时更新怪物
 private:
     Ui::Widget *ui;
     Gameman *mpmap;   // 地图管理对象
     Role *mrole;      // 角色对象
     QTimer *mtime;    // 计时器
     bool gameWon;     // 游戏胜利标志
-    int mazeRows;     // 迷宫行数
-    int mazeCols;     // 迷宫列数
     int startX;       // 起点行坐标
     int startY;       // 起点列坐标
     int endX;         // 终点行坐标
@@ -84,6 +92,11 @@ private:
 
     settingWindow *settingwindow;
      int currentLevel = 0; // 记录当前正在玩的关卡
+
+
+     Monster* mmonster = nullptr;
+     QTimer* monsterTimer = nullptr;  // 定时器用于怪物移动
+
 
 signals:
     void back(); // 返回信号

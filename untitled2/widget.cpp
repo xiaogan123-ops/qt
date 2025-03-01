@@ -9,6 +9,8 @@
 #include <QInputDialog>
 #include<QFileDialog>
 #include<QSettings>
+#include<QRandomGenerator>>
+
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Widget)
@@ -32,7 +34,6 @@ Widget::Widget(QWidget *parent)
     ,victoryScale(0.0)  // 胜利动画缩放比例
     , victorySoundPlayed(false) // 初始化标志
     ,failureScale(0.0)
-    ,failure_soundPlayed_2(false)
     ,mMedia_4(new QMediaPlayer(this))    // 媒体播放器
     ,audioOutput_4(new QAudioOutput(this))// 音频输出
     ,settingwindow(settingWindow::instance(this))
@@ -87,6 +88,9 @@ Widget::Widget(QWidget *parent)
     connect(ui->But1, &QPushButton::clicked, this, &Widget::onBackButtonClicked);
     connect(ui->btu2, &QPushButton::clicked, this, &Widget::onAutoPathButtonClicked);
     connect(ui->btu3, &QPushButton::clicked, this, &Widget::onNoSolutionButtonClicked);
+
+    monsterTimer = new QTimer(this);
+    connect(monsterTimer, &QTimer::timeout, this, &Widget::moveMonster);
 }
 
 Widget::~Widget()
@@ -122,6 +126,13 @@ void Widget::setMazeParameters(int rows, int cols, int startX, int startY, int e
 // 重置游戏状态
 void Widget::resetGame()
 {
+
+    if (mmonster) {
+        delete mmonster;
+        mmonster = nullptr;
+    }
+    mmonster = new Monster(this);
+
 
 
     qDebug() << "正在重置游戏...";
@@ -202,6 +213,9 @@ void Widget::resetGame()
     }
     gameWon = false;
     update();
+    delete maze;
+
+
 }
 
 void Widget::onBackButtonClicked()
@@ -251,7 +265,22 @@ void Widget::paintEvent(QPaintEvent *event)
         mrole->Paint(&painter, QPoint(0, 0), cellWidth, cellHeight);
     }
 
-
+    if(currentLevel!=0){
+    if (mmonster) {
+        QImage monsterImg(":/res/abc.png"); // 确保有怪物图片资源
+        if (!monsterImg.isNull()) {
+            int cellWidth = 600 / mazeCols;
+            int cellHeight = 600 / mazeRows;
+            QRect monsterRect(
+                mmonster->col() * cellWidth,
+                mmonster->row() * cellHeight,
+                cellWidth,
+                cellHeight
+                );
+            painter.drawImage(monsterRect, monsterImg);
+        }
+    }
+    }
     // 检查胜利状态
     if (mrole && mrole->row() == endX && mrole->col() == endY && !gameWon) {
         levelComplete();
@@ -330,8 +359,8 @@ void Widget::paintEvent(QPaintEvent *event)
     // 绘制路径（排除角色当前位置）
     if (showingPath && !solutionPath.isEmpty()) {
 
-        int cellWidth = 500 / mazeCols;
-        int cellHeight = 500 / mazeRows;
+        int cellWidth = 600 / mazeCols;
+        int cellHeight = 600 / mazeRows;
 
         QPoint rolePos(mrole->row(), mrole->col()); // 获取当前角色位置
 
@@ -351,45 +380,37 @@ void Widget::paintEvent(QPaintEvent *event)
 
 void Widget::keyPressEvent(QKeyEvent *event)
 {
+    if (!mrole || gameWon) return;
 
-
-    if (showingPath) { // 开始移动时清除路径显示
-        solutionPath.clear();
-        showingPath = false;
+    int dRow = 0, dCol = 0;
+    switch(event->key()) {
+    // 方向键控制
+    case Qt::Key_Up:    dRow = -1; break;
+    case Qt::Key_Down:  dRow = 1;  break;
+    case Qt::Key_Left:  dCol = -1; break;
+    case Qt::Key_Right: dCol = 1;  break;
+    // WASD 控制
+    case Qt::Key_W:     dRow = -1; break; // W 上
+    case Qt::Key_S:     dRow = 1;  break; // S 下
+    case Qt::Key_A:     dCol = -1; break; // A 左
+    case Qt::Key_D:     dCol = 1;  break; // D 右
+    default: QWidget::keyPressEvent(event); return;
+    }
+    int newRow = mrole->row() + dRow;
+    int newCol = mrole->col() + dCol;
+    if (mpmap->isValid(newRow, newCol) && mpmap->isRoad(newRow, newCol)) {
+        mrole->Move(dRow, dCol);
+        checkCollision(); // 角色移动后立即检测碰撞
         update();
     }
-    if (gameWon) return;
-
-
-    // 处理方向键和WASD按键
-    switch (event->key()) {
-    case Qt::Key_W:
-    case Qt::Key_Up:
-        moveRole(-1, 0);
-        break;
-    case Qt::Key_A:
-    case Qt::Key_Left:
-        moveRole(0, -1);
-        break;
-    case Qt::Key_S:
-    case Qt::Key_Down:
-        moveRole(1, 0);
-        break;
-    case Qt::Key_D:
-    case Qt::Key_Right:
-        moveRole(0, 1);
-        break;
-    default:
-        break;
-    }
 }
-
 // 角色移动逻辑
 void Widget::moveRole(int dRow, int dCol)
 {
     if (!mrole || gameWon) return;
 
     // 计算新位置
+     QMutexLocker locker(&moveMutex);
     int newRow = mrole->row() + dRow;
     int newCol = mrole->col() + dCol;
 
@@ -515,6 +536,28 @@ void Widget::resetGame1(int level) {
     mpmap = new Gameman(this);
     mpmap->InitByData(maze->getmaze());
 
+    mmonster = new Monster(this);
+    // 设置巡逻路线（根据关卡配置）
+    QVector<QPair<int, int>> patrolRoute;
+    switch(currentLevel) {
+    case 1:
+        patrolRoute << QPair<int, int>(6, 0)
+                    << QPair<int, int>(10, 0);
+
+        break;
+    case 2:
+        patrolRoute << QPair<int, int>(2, 2)
+                    << QPair<int, int>(2, 6)
+                    << QPair<int, int>(6, 6)
+                    << QPair<int, int>(6, 2);
+        break;
+        // 添加更多关卡配置...
+    }
+    mmonster->setPatrolRoute(patrolRoute);
+
+    // 启动怪物定时器
+    monsterTimer->start(800); // 800毫秒移动一次
+
     if (endX == -1 || endY == -1) {
         QMessageBox::warning(this, "错误", "未找到迷宫终点！");
         return;
@@ -591,4 +634,65 @@ void Widget::levelComplete() {
     if (nextLevel <= 17) {
         emit levelUnlocked(nextLevel); // 直接发射信号，由SecondWindow处理
     }
+}
+void Widget::updateMonster() {
+    if (!mmonster || !mrole)
+        return;
+
+    mmonster->move();
+
+    // 碰撞检测：如果怪物和角色在同一位置，游戏结束
+    if (mmonster->row() == mrole->row() && mmonster->col() == mrole->col()) {
+        // 可根据需要显示失败动画或结束逻辑
+        QMessageBox::information(this, "游戏结束", "角色被怪物捕捉，游戏结束！");
+        // 停止定时器等操作
+        if (monsterTimer)
+            monsterTimer->stop();
+        if (mtime)
+            mtime->stop();
+    }
+    update();  // 触发重绘，更新怪物显示
+}
+void Widget::moveMonster()
+{
+    if (mmonster) {
+        mmonster->move();
+        checkCollision();
+        update();
+    }
+}
+
+void Widget::checkCollision()
+{
+    if (mrole && mmonster &&
+        mrole->row() == mmonster->row() &&
+        mrole->col() == mmonster->col())
+    {
+        handleGameFailure();
+    }
+}
+
+void Widget::handleGameFailure()
+{
+    // 停止游戏计时器和怪物移动
+    if (mtime) mtime->stop();
+    monsterTimer->stop();
+
+    // 触发失败动画
+    failureScale = 0.0;
+    failure_soundPlayed_2 = false;
+    failureTimer_2->start(50);
+
+    // 播放失败音效
+    if (!failure_soundPlayed_2) {
+        mMedia_4->play();
+        failure_soundPlayed_2 = true;
+    }
+
+    // 停止背景音乐
+    if (mMedia) {
+        mMedia->stop();
+    }
+
+    update();
 }

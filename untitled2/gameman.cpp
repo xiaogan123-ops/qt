@@ -8,7 +8,7 @@
 #include <QTextStream> // 用于文本流操作
 #include <QThread>
 #include<QPainter>
-
+#include <QRandomGenerator>
 Gameman::Gameman(QObject *parent)
     : QObject{parent}, mrow(0), mcol(0) {
 
@@ -124,4 +124,12 @@ void Gameman::clear() {
     mpArr.clear();
     mrow = 0;
     mcol = 0;
+}
+bool Gameman::isValid(int row, int col) const {
+    return (row >= 0) && (row < mpArr.size()) &&
+           (col >= 0) && (col <mpArr[0].size());
+}
+
+bool Gameman::isRoad(int row, int col) const {
+    return isValid(row, col) && (mpArr[row][col] == 0); // 假设 0 表示可行走道路
 }

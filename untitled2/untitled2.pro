@@ -13,6 +13,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     maze.cpp \
+    monster.cpp \
     role.cpp \
     secondwindow.cpp \
     settingwindow.cpp \
@@ -23,6 +24,7 @@ HEADERS += \
     gameman.h \
     mainwindow.h \
     maze.h \
+    monster.h \
     role.h \
     secondwindow.h \
     settingwindow.h \

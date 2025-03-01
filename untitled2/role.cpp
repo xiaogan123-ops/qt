@@ -61,3 +61,4 @@ void Role::Paint(QPainter* painter, const QPoint& offset, int cellWidth, int cel
     // 绘制缩放后的图片
     painter->drawPixmap(x, y, scaled);
 }
+

@@ -4,8 +4,8 @@
 #include <QObject>
 #include <QPainter>
 #include <QVector>
-#include <functional>
 #include"maze.h"
+
 class Gameman : public QObject
 {
     Q_OBJECT
@@ -47,6 +47,8 @@ public:
     int mrow;  // 行数
     int mcol;  // 列数
 
+    bool isValid(int row, int col) const;
+    bool isRoad(int row, int col) const;
 
 
 
@@ -60,7 +62,6 @@ private:
     Maze *maze; // Maze 类的实例
     int endX = -1;
     int endY = -1;
-
 
 };
 

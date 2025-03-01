@@ -430,3 +430,4 @@ void Maze::unionSets(QVector<int>& parent, QVector<int>& rank, int x, int y) {
         }
     }
 }
+
