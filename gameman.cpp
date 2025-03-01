@@ -131,5 +131,5 @@ bool Gameman::isValid(int row, int col) const {
 }
 
 bool Gameman::isRoad(int row, int col) const {
-    return isValid(row, col) && (mpArr[row][col] != 1); // 假设 0 表示可行走道路
+    return isValid(row, col) && (mpArr[row][col] != 1); // 假设 不是1 表示可行走道路
 }

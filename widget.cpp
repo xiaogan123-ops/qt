@@ -38,10 +38,14 @@ Widget::Widget(QWidget *parent)
     ,mMedia_4(new QMediaPlayer(this))    // 媒体播放器
     ,audioOutput_4(new QAudioOutput(this))// 音频输出
     ,settingwindow(settingWindow::instance(this))
+    ,isPropCollected(false)
+    , m_hasBanana(false)
+    , m_isSpeedBoosted(false)
+    , m_stepSize(1)
 {
     ui->setupUi(this);
 
-     setFixedSize(850, 600);
+    setFixedSize(850, 600);
 
     // 添加胜利动画定时器
     victoryTimer = new QTimer(this);
@@ -65,7 +69,7 @@ Widget::Widget(QWidget *parent)
         }
     });
 
-     // 配置背景音乐
+    // 配置背景音乐
     mMedia->setAudioOutput(audioOutput); // 绑定音频输出
     mMedia->setSource(QUrl("qrc:/res/4.mp4")); // 使用资源路径
     audioOutput->setVolume(50); // 设置音量（0~100）
@@ -90,19 +94,181 @@ Widget::Widget(QWidget *parent)
     connect(ui->btu2, &QPushButton::clicked, this, &Widget::onAutoPathButtonClicked);
     connect(ui->btu3, &QPushButton::clicked, this, &Widget::onNoSolutionButtonClicked);
 
-    monsterTimer = new QTimer(this);
-    connect(monsterTimer, &QTimer::timeout, this, &Widget::moveMonster);
+    //鼻涕怪
+    monsterImageMap.insert({5, 0}, ":/res/Snorter.jpg");
 
-     initLevelDialogs();
+    //大眼怪
+    monsterImageMap.insert({6, 0}, ":/res/Big_Eyes_Monster.jpg");
+
+    //胖怪兽
+    monsterImageMap.insert({7, 0}, ":/res/Fat_Monster.jpg");
+
+    //会喷火的龙宝宝
+    monsterImageMap.insert({8, 0}, ":/res/dragon_baby.jpg");
+
+    monsterImageMap.insert({9, 0}, ":/res/Hoppy_Monster1.jpg"); // 红色跳跳怪
+    monsterImageMap.insert({9, 1}, ":/res/Hoppy_Monster2.jpg");// 蓝色跳跳怪
+
+    // 第10关天使和恶魔
+    monsterImageMap.insert({10,0}, ":/res/Angel.jpg");
+    monsterImageMap.insert({10,1}, ":/res/Demon.jpg");
+
+    //机器人
+    monsterImageMap.insert({11,0}, ":/res/robot.jpg");
+    monsterImageMap.insert({11,1}, ":/res/robot.jpg");
+
+    //魔法师
+    monsterImageMap.insert({12,0}, ":/res/enchanter.jpg");
+    monsterImageMap.insert({12,1}, ":/res/enchanter.jpg");
+
+    //大怪兽
+    monsterImageMap.insert({13,0}, ":/res/Big_monster.jpg");
+    monsterImageMap.insert({13,1}, ":/res/Big_monster.jpg");
+    monsterImageMap.insert({13,2}, ":/res/Big_monster.jpg");
+
+    //守卫
+    monsterImageMap.insert({14,0}, ":/res/protector.jpg");
+    monsterImageMap.insert({14,1}, ":/res/protector.jpg");
+    monsterImageMap.insert({14,2}, ":/res/protector.jpg");
+
+    //石头人
+    monsterImageMap.insert({15,0}, ":/res/Malphite.jpg");
+    monsterImageMap.insert({15,1}, ":/res/Malphite.jpg");
+    monsterImageMap.insert({15,2}, ":/res/Malphite.jpg");
+
+    //大魔王
+    monsterImageMap.insert({16,0}, ":/res/big_devil.jpg");
+    monsterImageMap.insert({16,1}, ":/res/big_devil.jpg");
+    monsterImageMap.insert({16,2}, ":/res/big_devil.jpg");
+
+
+    monsterTimer = new QTimer(this);
+    connect(monsterTimer, &QTimer::timeout, this, &Widget::moveMonsters);
+
+    initLevelDialogs();
 
     setFocusPolicy(Qt::StrongFocus);
     QTimer::singleShot(100, this, &Widget::setFocusToGame);
+
+    // 初始化加速计时器
+    m_speedBoostTimer = new QTimer(this);
+    connect(m_speedBoostTimer, &QTimer::timeout, this, [this](){
+        m_isSpeedBoosted = false;
+        m_stepSize = 1;
+        m_speedBoostTimer->stop();
+    });
 }
 void Widget::setFocusToGame()
 {
     this->setFocus();
     if(currentDialog){
         currentDialog->setFocusProxy(this);
+    }
+}
+void Widget::setupMonstersForLevel(int level) {
+    // 清空原有怪物
+    qDeleteAll(m_monsters);
+    m_monsters.clear();
+
+    // 根据关卡配置怪物
+    switch(level) {
+    case 5: // 鼻涕怪直线巡逻
+        m_monsters.append(new Monster());
+        m_monsters[0]->setPatrolRoute({{8,14}, {12,14}});
+        break;
+    case 6:
+        m_monsters.append(new Monster());
+        m_monsters[0]->setPatrolRoute({{17,6}, {17,9}});
+        break;
+    case 7:
+        m_monsters.append(new Monster());
+        m_monsters[0]->setPatrolRoute({{8,8}, {10,8}});
+        break;
+    case 8:
+        m_monsters.append(new Monster());
+        m_monsters[0]->setPatrolRoute({{19,5}, {19,9}});
+        break;
+    case 9: { // 两个跳跳怪交叉巡逻
+        // 红怪路线
+        m_monsters.append(new Monster());
+        m_monsters.last()->setPatrolRoute({{9,1}, {12,1}});
+
+        // 第二个跳跳怪（蓝色）
+        m_monsters.append(new Monster());
+        m_monsters.last()->setPatrolRoute({{15,11}, {17,11}});
+        break;
+    }
+    case 10: {
+
+        m_monsters.append(new Monster());
+        m_monsters.last()->setPatrolRoute({{7,1}, {9,1}});
+
+        m_monsters.append(new Monster());
+        m_monsters.last()->setPatrolRoute({{13,11}, {15,11}});
+        break;
+    }
+    case 11: {
+
+        m_monsters.append(new Monster());
+        m_monsters.last()->setPatrolRoute({{17,2}, {17,4}});
+
+        m_monsters.append(new Monster());
+        m_monsters.last()->setPatrolRoute({{9,10}, {9,12}});
+        break;
+    }
+    case 12: {
+
+        m_monsters.append(new Monster());
+        m_monsters.last()->setPatrolRoute({{1,21}, {3,21}});
+
+        m_monsters.append(new Monster());
+        m_monsters.last()->setPatrolRoute({{7,1}, {9,1}});
+        break;
+    }
+    case 13: {
+
+        m_monsters.append(new Monster());
+        m_monsters.last()->setPatrolRoute({{19,14}, {21,14}});
+
+        m_monsters.append(new Monster());
+        m_monsters.last()->setPatrolRoute({{9,0}, {11,0}});
+        m_monsters.append(new Monster());
+        m_monsters.last()->setPatrolRoute({{0,9}, {0,11}});
+        break;
+    }
+    case 14: {
+
+        m_monsters.append(new Monster());
+        m_monsters.last()->setPatrolRoute({{23,18}, {23,20}});
+
+        m_monsters.append(new Monster());
+        m_monsters.last()->setPatrolRoute({{27,8}, {27,10}});
+        m_monsters.append(new Monster());
+        m_monsters.last()->setPatrolRoute({{18,5}, {20,5}});
+        break;
+    }
+    case 15: {
+
+        m_monsters.append(new Monster());
+        m_monsters.last()->setPatrolRoute({{0,22}, {0,24}});
+
+        m_monsters.append(new Monster());
+        m_monsters.last()->setPatrolRoute({{1,1}, {3,1}});
+        m_monsters.append(new Monster());
+        m_monsters.last()->setPatrolRoute({{30,8}, {30,10}});
+        break;
+    }
+    case 16: {
+
+        m_monsters.append(new Monster());
+        m_monsters.last()->setPatrolRoute({{24,2}, {26,2}});
+
+        m_monsters.append(new Monster());
+        m_monsters.last()->setPatrolRoute({{17,0}, {19,0}});
+        m_monsters.append(new Monster());
+        m_monsters.last()->setPatrolRoute({{20,15}, {20,17}});
+        break;
+    }
     }
 }
 Widget::~Widget()
@@ -118,6 +284,11 @@ Widget::~Widget()
     delete ui;
     if(currentDialog) {
         currentDialog->deleteLater();
+    }
+
+    if (monsterTimer) {
+        monsterTimer->stop();
+        delete monsterTimer;
     }
 }
 
@@ -141,13 +312,6 @@ void Widget::setMazeParameters(int rows, int cols, int startX, int startY, int e
 // 重置游戏状态
 void Widget::resetGame()
 {
-
-    if (mmonster) {
-        delete mmonster;
-        mmonster = nullptr;
-    }
-    mmonster = new Monster(this);
-
 
 
     qDebug() << "正在重置游戏...";
@@ -181,7 +345,7 @@ void Widget::resetGame()
     solutionPath.clear();
     showingPath = false;
 
-   // 创建新迷宫对象并加载文件
+    // 创建新迷宫对象并加载文件
     Maze* maze=new(Maze);
     QString filePath = QFileDialog::getOpenFileName(this, "选择迷宫文件", "", "Text Files (*.txt);;All Files (*)");
     if (filePath.isEmpty()) {
@@ -199,7 +363,7 @@ void Widget::resetGame()
     mazeRows = maze->getmaze().size();
     mazeCols = (mazeRows > 0) ? maze->getmaze()[0].size() : 0;
 
-   // 设置起始点和角色位置
+    // 设置起始点和角色位置
     QPair<int, int> startPos = maze->findStartPosition();
     startX = startPos.first;
     startY = startPos.second;
@@ -222,7 +386,7 @@ void Widget::resetGame()
     }
 
 
-     // 创建新计时器
+    // 创建新计时器
     if (!mtime) {
         mtime = new QTimer(this);
     }
@@ -235,6 +399,9 @@ void Widget::resetGame()
 
 void Widget::onBackButtonClicked()
 {
+
+    isPropCollected = false;
+    m_hasBanana = false;
 
     mMedia_2->play(); // 播放按钮音效
 
@@ -249,6 +416,8 @@ void Widget::onBackButtonClicked()
     failureTimer_2->stop();        // 停止失败动画定时器
 
 
+
+
     this->hide();
     if (parentWidget()) {
         parentWidget()->show(); // 返回上一个窗口
@@ -261,7 +430,7 @@ void Widget::paintEvent(QPaintEvent *event)
     Q_UNUSED(event);
     QPainter painter(this);
 
-   // 绘制背景图片
+    // 绘制背景图片
     QImage background("://res/background.jpg");
     if (!background.isNull()) {
         painter.drawImage(QRect(0, 0, 850, 600), background);
@@ -273,6 +442,29 @@ void Widget::paintEvent(QPaintEvent *event)
         mpmap->paint(&painter, QPoint(0, 0));
     }
 
+
+    if(currentLevel == 3 && !isPropCollected){
+        int cellWidth = 600 / mazeCols;
+        int cellHeight = 600 / mazeRows;
+        painter.drawImage(QRect(
+                              1 * cellWidth,
+                              13 * cellHeight,
+                              cellWidth,
+                              cellHeight),
+                          QImage(":/res/props.jpg"));
+    }
+
+
+    if(currentLevel == 6 && m_hasBanana){
+        int cellWidth = 600 / mazeCols;
+        int cellHeight = 600 / mazeRows;
+        painter.drawImage(QRect(
+                              m_bananaPos.y() * cellWidth,
+                              m_bananaPos.x() * cellHeight,
+                              cellWidth,
+                              cellHeight),
+                          QImage(":/res/banana.jpg"));
+    }
     // 角色绘制
     if (mrole) {
         int cellWidth = 600 / mazeCols;
@@ -280,20 +472,7 @@ void Widget::paintEvent(QPaintEvent *event)
         mrole->Paint(&painter, QPoint(0, 0), cellWidth, cellHeight);
     }
 
-   if(currentLevel != 0 && mmonster && !mmonster->patrolRouteEmpty()) {
-        QImage monsterImg(":/res/abc.png"); // 确保有怪物图片资源
-        if (!monsterImg.isNull()) {
-            int cellWidth = 600 / mazeCols;
-            int cellHeight = 600 / mazeRows;
-            QRect monsterRect(
-                mmonster->col() * cellWidth,
-                mmonster->row() * cellHeight,
-                cellWidth,
-                cellHeight
-                );
-            painter.drawImage(monsterRect, monsterImg);
-        }
-   }
+
 
     // 检查胜利状态
     if (mrole && mrole->row() == endX && mrole->col() == endY) {
@@ -351,25 +530,21 @@ void Widget::paintEvent(QPaintEvent *event)
         }
     }
 
-    if(currentLevel==3){
-        int cellWidth = 600 / mazeCols;
-        int cellHeight = 600 / mazeRows;
-        propsx=1* cellWidth;
-        propsy=13*cellHeight;
-        painter.drawImage(QRect(
-                             propsx,
-                             propsy,
-                              cellWidth,
-                              cellHeight
-                              ), QImage("://res/destination.jpg"));
+
+    for(int i=0; i<m_monsters.size(); ++i){
+        Monster* monster = m_monsters[i];
+        QString imgPath = monsterImageMap.value({currentLevel, i}, "");
+
+        if(!imgPath.isEmpty()){
+            QImage monsterImg(imgPath);
+            int cellW = 600/mazeCols, cellH = 600/mazeRows;
+            painter.drawImage(QRect(
+                                  monster->col()*cellW,
+                                  monster->row()*cellH,
+                                  cellW, cellH), monsterImg);
+        }
     }
 
-
-    if(currentLevel==3){
-    if(mrole && mrole->row() == 13 && mrole->col() == 1){
-        isbump=true;
-    }
-    }
     if (failureTimer_2->isActive() || failureScale > 0) {
         QPixmap failurePixmap("://res/3.jpg");
         if (!failurePixmap.isNull()) {
@@ -411,11 +586,16 @@ void Widget::paintEvent(QPaintEvent *event)
                                   ), QImage("://res/destination.jpg")); // 使用专用路径标记图片
         }
     }
+
+
+
+
 }
 
 void Widget::keyPressEvent(QKeyEvent *event)
 {
     if (!mrole || gameWon || isDialogActive) return; // 新增isDialogActive检查
+
 
     int dRow = 0, dCol = 0;
     switch(event->key()) {
@@ -431,12 +611,73 @@ void Widget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_D:     dCol = 1;  break; // D 右
     default: QWidget::keyPressEvent(event); return;
     }
-    int newRow = mrole->row() + dRow;
-    int newCol = mrole->col() + dCol;
-    if (mpmap->isValid(newRow, newCol) && mpmap->isRoad(newRow, newCol)) {
-        mrole->Move(dRow, dCol);
-        checkCollision(); // 角色移动后立即检测碰撞
+
+
+    // 检查是否吃到香蕉皮
+    if(currentLevel == 6 && m_hasBanana &&
+        mrole->row() == m_bananaPos.x() &&
+        mrole->col() == m_bananaPos.y())
+    {
+
+        m_hasBanana = false;
+        m_isSpeedBoosted = true;
+        m_stepSize = 2; // 加速时每次移动2格
+        m_speedBoostTimer->start(5000); // 加速持续5秒
+    }
+
+
+    if(currentLevel!=6){
+        int newRow = mrole->row() + dRow;
+        int newCol = mrole->col() + dCol;
+        if (mpmap->isValid(newRow, newCol) && mpmap->isRoad(newRow, newCol)) {
+            mrole->setPosition(newRow, newCol); // 直接设置新位置
+            if (showingPath) {
+                solutionPath.clear();
+                showingPath = false;
+            }
+            update();
+        }
+    }else {
+        for(int i=0; i<m_stepSize; i++){
+            int newRow = mrole->row() + dRow;
+            int newCol = mrole->col() + dCol;
+
+            if(mpmap->isValid(newRow, newCol) && mpmap->isRoad(newRow, newCol)){
+                mrole->setPosition(newRow, newCol);
+                checkMonsterCollisions();
+                if (showingPath) {
+                    solutionPath.clear();
+                    showingPath = false;
+                }
+            } else {
+                break; // 如果遇到墙或者边界，停止后续移动
+            }
+
+        }
+        qDebug()<<"abc";
         update();
+    }
+
+    if (currentLevel == 3 && !isPropCollected &&
+        mrole->row() == 13 && mrole->col() == 1)
+    {
+        isPropCollected = true;
+        qDebug()<<"abc";
+        onAutoPathButtonClicked();
+        return;
+    }
+
+}
+
+void Widget::checkMonsterCollisions()
+{
+    foreach (Monster* monster, m_monsters) {
+        if(monster->row() == mrole->row() &&
+            monster->col() == mrole->col())
+        {
+            handleGameFailure();
+            return;
+        }
     }
 }
 // 角色移动逻辑
@@ -445,7 +686,7 @@ void Widget::moveRole(int dRow, int dCol)
     if (!mrole || gameWon) return;
 
     // 计算新位置
-     QMutexLocker locker(&moveMutex);
+    QMutexLocker locker(&moveMutex);
     int newRow = mrole->row() + dRow;
     int newCol = mrole->col() + dCol;
 
@@ -477,11 +718,7 @@ void Widget::closeEvent(QCloseEvent* event) {
     if (mMedia_3) mMedia_3->stop();
     if (mMedia_4) mMedia_4->stop();
 
-    // 释放怪物对象
-    if (mmonster) {
-        delete mmonster;
-        mmonster = nullptr;
-    }
+
 
     // 释放定时器
     if (victoryTimer) {
@@ -512,11 +749,11 @@ void Widget::onAutoPathButtonClicked() {
     if (findPathDFS(solutionPath)) { // 使用DFS算法找路径
         showingPath = true;
         update(); // 触发重绘
+        qDebug()<<"aaa";
     } else {
         QMessageBox::warning(this, "提示", "当前迷宫无解！");
     }
 }
-
 
 void Widget::onNoSolutionButtonClicked() {
     mMedia_2->play();
@@ -540,7 +777,7 @@ void Widget::onNoSolutionButtonClicked() {
 
 //关卡
 void Widget::setMaze(int level, int rows, int cols, int startX, int startY, int endX, int endY) {
-     currentLevel = level; // 关键！设置当前关卡
+    currentLevel = level; // 关键！设置当前关卡
     this->mazeRows = rows;
     this->mazeCols = cols;
     this->startX = startX;
@@ -557,6 +794,13 @@ void Widget::setMaze(int level, int rows, int cols, int startX, int startY, int 
         qDebug() << "2...";
     }
     if (!mpmap) return;
+
+    if(level == 6){
+        m_bananaPos = QPoint(1, 12); // 设置香蕉皮位置（根据实际迷宫调整）
+        m_hasBanana = true;
+    }else{
+        m_hasBanana = false;
+    }
 
 
 }
@@ -576,6 +820,22 @@ void Widget::resetGame1(int level) {
 
     isDialogActive = false;
     gameWon = false;
+
+    isPropCollected = false;  // 新增：重置第三关道具状态
+    m_hasBanana = false;      // 新增：重置第六关香蕉状态
+
+    setupMonstersForLevel(level); // 初始化怪物
+    monsterTimer->start(800); // 启动怪物定时器
+
+    if(level == 6){
+        m_hasBanana = true;
+        m_bananaPos = QPoint(1, 12); // 根据实际迷宫调整坐标
+        m_isSpeedBoosted = false;
+        m_stepSize = 1;
+    }else{
+        m_hasBanana = false;
+    }
+
 
     // 动态生成文件名
     QString fileName = QString("新建文件夹/taxt%1.txt").arg(level);
@@ -611,31 +871,14 @@ void Widget::resetGame1(int level) {
     mpmap->InitByData(maze->getmaze());
 
 
-    mmonster = new Monster(this);
-    // 设置巡逻路线（根据关卡配置）
-    QVector<QPair<int, int>> patrolRoute;
-    switch(currentLevel) {
-    case 1:
-        patrolRoute << QPair<int, int>(6, 0)
-                    << QPair<int, int>(10, 0);
 
-        break;
-    // case 2:
-    //     patrolRoute << QPair<int, int>(2, 2)
-    //                 << QPair<int, int>(2, 6)
-    //                 << QPair<int, int>(6, 6)
-    //                 << QPair<int, int>(6, 2);
-    //     break;
-        // 添加更多关卡配置...
-    }
-    mmonster->setPatrolRoute(patrolRoute);
+
 
     if(levelDialogs.contains(currentLevel)){
         showLevelDialog(levelDialogs[currentLevel]);
     }
 
-    // 启动怪物定时器
-    monsterTimer->start(800); // 800毫秒移动一次
+
 
     if (endX == -1 || endY == -1) {
         QMessageBox::warning(this, "错误", "未找到迷宫终点！");
@@ -655,7 +898,7 @@ bool Widget::findPathDFS(QList<QPoint>& path) {
     if (!mpmap || !mrole) return false;
 
 
-   // 使用栈实现的DFS算法
+    // 使用栈实现的DFS算法
     QStack<QPoint> stack;
     QVector<QVector<bool>> visited(mazeRows, QVector<bool>(mazeCols, false));
 
@@ -706,53 +949,17 @@ bool Widget::findPathDFS(QList<QPoint>& path) {
 }
 
 void Widget::levelComplete() {
-      int nextLevel = currentLevel + 1;
+    int nextLevel = currentLevel + 1;
     if(currentLevel==1){
-      nextLevel = currentLevel + 1;
+        nextLevel = currentLevel + 1;
     }
     if (nextLevel <= 17) {
         emit levelUnlocked(nextLevel); // 直接发射信号，由SecondWindow处理
     }
 }
-void Widget::updateMonster() {
-    if (!mmonster || !mrole)
-        return;
 
-    mmonster->move();
 
-    // 碰撞检测：如果怪物和角色在同一位置，游戏结束
-    if (mmonster->row() == mrole->row() && mmonster->col() == mrole->col()) {
-        // 可根据需要显示失败动画或结束逻辑
-        QMessageBox::information(this, "游戏结束", "角色被怪物捕捉，游戏结束！");
-        // 停止定时器等操作
-        if (monsterTimer)
-            monsterTimer->stop();
-        if (mtime)
-            mtime->stop();
-    }
-    update();  // 触发重绘，更新怪物显示
-}
-void Widget::moveMonster()
-{
-    if (mmonster && !isDialogActive) { // 添加状态检查
-        mmonster->move();
-        checkCollision();
-        update();
-    }
-}
 
-void Widget::checkCollision()
-{
-
-     if (isDialogActive) return; // 对话框激活时不检测碰撞
-
-    if (mrole && mmonster &&
-        mrole->row() == mmonster->row() &&
-        mrole->col() == mmonster->col())
-    {
-        handleGameFailure();
-    }
-}
 
 void Widget::handleGameFailure()
 {
@@ -913,8 +1120,8 @@ void Widget::initLevelDialogs()
 
     levelDialogs[12] = {
         "最终双怪关卡！",
-        "会分身的魔法师",
-        "跟着真身的影子走"
+        "可怕的魔法师",
+        "称他们不注意走"
     };
 
     levelDialogs[13] = {
@@ -933,7 +1140,7 @@ void Widget::initLevelDialogs()
         "终极关卡前奏！",
         "迷宫会自己转动",
         "三个石头人追你",
-        "快找发光的传送点！"
+        "快找到星星吧！"
     };
 
     levelDialogs[16] = {
@@ -941,4 +1148,18 @@ void Widget::initLevelDialogs()
         "三个大魔王把守",
         "冲鸭！终点在发光！"
     };
+}
+void Widget::moveMonsters() {
+    foreach (Monster* monster, m_monsters) {
+        monster->move();
+
+        // 碰撞检测
+        if(monster->row() == mrole->row() &&
+            monster->col() == mrole->col())
+        {
+            handleGameFailure();
+            return;
+        }
+    }
+    update();
 }

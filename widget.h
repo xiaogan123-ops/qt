@@ -44,17 +44,15 @@ public:
     void handleGameFailure();
     void showLevelDialog(const QStringList &messages);
     void setFocusToGame();
+    void setupMonstersForLevel(int level); // 根据关卡设置怪物
+    void moveMonsters();
+    void checkMonsterCollisions();
 
 protected:
     void paintEvent(QPaintEvent *event) override;  // 绘制事件
     void keyPressEvent(QKeyEvent *event) override; // 键盘事件
     void closeEvent(QCloseEvent *event) override;  // 关闭事件
 
-private slots:
-    void moveMonster();
-    void checkCollision();
-private slots:
-    void updateMonster(); // 定时更新怪物
 private:
     Ui::Widget *ui;
     Gameman *mpmap;   // 地图管理对象
@@ -67,6 +65,7 @@ private:
     int endY;         // 终点列坐标
     int propsx;
     int propsy;
+    bool isPropCollected; // 标记道具是否被获取
 
     void resetGame();       // 重置游戏
     void collision(int dRow, int dCol); // 检测碰撞
@@ -100,7 +99,8 @@ private:
      int currentLevel = 0; // 记录当前正在玩的关卡
 
 
-     Monster* mmonster = nullptr;
+     QList<Monster*> m_monsters;  // 多个怪物
+     QMap<QPair<int, int>, QString> monsterImageMap; // 关卡+序号映射图片
      QTimer* monsterTimer = nullptr;  // 定时器用于怪物移动
 
      QMap<int, QStringList> levelDialogs; // 关卡对话数据
@@ -108,6 +108,14 @@ private:
       CustomDialog *currentDialog = nullptr; // 对话框指针
        bool isDialogActive = false; // 新增对话框激活状态
       bool isbump=false;
+
+       // 香蕉皮相关变量
+       QPoint m_bananaPos;          // 香蕉皮位置
+       bool m_hasBanana;            // 是否获得香蕉皮
+       bool m_isSpeedBoosted;       // 是否处于加速状态
+       QTimer* m_speedBoostTimer;   // 加速持续时间计时器
+       int m_stepSize;              // 当前移动步长
+        bool gameFailed; // 新增游戏失败标志
 
 
 

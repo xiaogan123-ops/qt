@@ -27,6 +27,22 @@
         <file>res/sound_1.jpg</file>
         <file>res/5.jpg</file>
         <file>res/6.png</file>
+        <file>res/Angel.jpg</file>
+        <file>res/banana.jpg</file>
+        <file>res/big_devil.jpg</file>
+        <file>res/Big_Eyes_Monster.jpg</file>
+        <file>res/Big_monster.jpg</file>
+        <file>res/Demon.jpg</file>
+        <file>res/dragon_baby.jpg</file>
+        <file>res/enchanter.jpg</file>
+        <file>res/Fat_Monster.jpg</file>
+        <file>res/Hoppy_Monster1.jpg</file>
+        <file>res/Hoppy_Monster2.jpg</file>
+        <file>res/Malphite.jpg</file>
+        <file>res/props.jpg</file>
+        <file>res/protector.jpg</file>
+        <file>res/robot.jpg</file>
+        <file>res/Snorter.jpg</file>
     </qresource>
     <qresource prefix="/audio"/>
     <qresource prefix="/adio"/>
